@@ -5,6 +5,10 @@ import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
+import { handleAuthRegister } from './api/auth/signup';
+import { handleAuthLogin } from './api/auth/login';
+import { handleAuthSession } from './api/auth/session';
+import { handleUserProfile } from './api/users/profile';
 
 dotenv.config();
 
@@ -25,6 +29,12 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
+
+// Auth routes
+app.post('/auth/signup', handleAuthRegister);
+app.post('/auth/login', handleAuthLogin);
+app.get('/auth/session', handleAuthSession);
+app.get('/users/profile', handleUserProfile);
 
 // Socket.io connection handling
 io.on('connection', (socket) => {
