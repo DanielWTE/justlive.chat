@@ -1,6 +1,6 @@
 {
   "name": "justlive.chat",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Live Chat Application",
   "scripts": {
     "frontend": "cd frontend && npm run dev",
@@ -16,4 +16,4 @@
   "devDependencies": {
     "concurrently": "^8.2.2"
   }
-} 
+}
