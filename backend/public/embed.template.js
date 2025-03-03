@@ -1208,9 +1208,9 @@
       const endedEl = document.createElement('div');
       endedEl.className = 'justlive-chat-ended';
       endedEl.innerHTML = `
-        <div class="justlive-chat-ended-title">${t.chatEnded}</div>
-        <div class="justlive-chat-ended-message">${t.agentEndedChat}</div>
-        <button class="justlive-chat-restart" style="background-color: ${primaryColor};">${t.startNewChat}</button>
+        <div class="justlive-chat-ended-title" style="font-size: 20px; font-weight: 600; margin-bottom: 10px;">${t.chatEnded}</div>
+        <div class="justlive-chat-ended-message" style="font-size: 15px; margin-bottom: 20px; line-height: 1.4;">${t.agentEndedChat}</div>
+        <button class="justlive-chat-restart" style="background-color: ${primaryColor}; font-size: 16px; padding: 12px 24px; border-radius: 8px; font-weight: 500; transition: all 0.2s ease; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">${t.startNewChat}</button>
       `;
       messagesContainer.appendChild(endedEl);
       
@@ -1318,11 +1318,11 @@
         const welcomeEl = document.createElement('div');
         welcomeEl.className = 'justlive-chat-welcome';
         welcomeEl.innerHTML = `
-          <div class="justlive-chat-welcome-title">${t.welcomeTitle}</div>
-          <div class="justlive-chat-welcome-message">
+          <div class="justlive-chat-welcome-title" style="font-size: 22px; font-weight: 600; margin-bottom: 12px;">${t.welcomeTitle}</div>
+          <div class="justlive-chat-welcome-message" style="font-size: 16px; margin-bottom: 20px; line-height: 1.4;">
             ${isAdminOnline ? t.teamOnline : t.teamOffline}
           </div>
-          <button class="justlive-chat-start-button" style="background-color: ${primaryColor};">${t.startNewChat}</button>
+          <button class="justlive-chat-start-button" style="background-color: ${primaryColor}; font-size: 16px; padding: 12px 24px; border-radius: 8px; font-weight: 500; transition: all 0.2s ease; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">${t.startNewChat}</button>
         `;
         messagesContainer.appendChild(welcomeEl);
         
@@ -1349,14 +1349,14 @@
       const formEl = document.createElement('div');
       formEl.className = 'justlive-chat-user-form';
       formEl.innerHTML = `
-        <div class="justlive-chat-form-title">${t.yourEmail}</div>
-        <div class="justlive-chat-form-explanation">${t.emailExplanation}</div>
-        <div class="justlive-chat-form-field">
-          <label class="justlive-chat-form-label" for="visitor-email">${t.yourEmail}</label>
-          <input type="email" id="visitor-email" class="justlive-chat-form-input" placeholder="${t.yourEmail}">
-          <div class="justlive-chat-form-error" id="email-error" style="display: none;">${t.invalidEmail}</div>
+        <div class="justlive-chat-form-title" style="font-size: 20px; font-weight: 600; margin-bottom: 10px;">${t.yourEmail}</div>
+        <div class="justlive-chat-form-explanation" style="font-size: 15px; margin-bottom: 20px; line-height: 1.4;">${t.emailExplanation}</div>
+        <div class="justlive-chat-form-field" style="margin-bottom: 20px;">
+          <label class="justlive-chat-form-label" for="visitor-email" style="font-size: 16px; margin-bottom: 8px; display: block;">${t.yourEmail}</label>
+          <input type="email" id="visitor-email" class="justlive-chat-form-input" placeholder="${t.yourEmail}" style="width: 100%; padding: 12px; font-size: 16px; border-radius: 6px; border: 1px solid #CBD5E0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+          <div class="justlive-chat-form-error" id="email-error" style="display: none; color: #E53E3E; margin-top: 6px; font-size: 14px;">${t.invalidEmail}</div>
         </div>
-        <button class="justlive-chat-form-submit" style="background-color: ${primaryColor};">${t.submitEmail}</button>
+        <button class="justlive-chat-form-submit" style="background-color: ${primaryColor}; font-size: 16px; padding: 12px 24px; border-radius: 8px; font-weight: 500; width: 100%; transition: all 0.2s ease; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">${t.submitEmail}</button>
       `;
       messagesContainer.appendChild(formEl);
       
@@ -1795,9 +1795,9 @@
         const deletedEl = document.createElement('div');
         deletedEl.className = 'justlive-chat-ended';
         deletedEl.innerHTML = `
-          <div class="justlive-chat-ended-title">${t.chatDeleted}</div>
-          <div class="justlive-chat-ended-message">${t.agentDeletedChat}</div>
-          <button class="justlive-chat-restart" style="background-color: ${primaryColor};">${t.startNewChat}</button>
+          <div class="justlive-chat-ended-title" style="font-size: 20px; font-weight: 600; margin-bottom: 10px;">${t.chatDeleted}</div>
+          <div class="justlive-chat-ended-message" style="font-size: 15px; margin-bottom: 20px; line-height: 1.4;">${t.agentDeletedChat}</div>
+          <button class="justlive-chat-restart" style="background-color: ${primaryColor}; font-size: 16px; padding: 12px 24px; border-radius: 8px; font-weight: 500; transition: all 0.2s ease; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">${t.startNewChat}</button>
         `;
         messagesContainer.appendChild(deletedEl);
         
