@@ -52,13 +52,13 @@ export const handleVisitorLeft = (
     // Notify admin about visitor leaving and session end
     io.to(`admin:${room.websiteId}`).emit('chat:visitor:left', { 
       roomId, 
-      message: 'Visitor left the chat (closed the page)' 
+      message: 'Visitor left the chat (closed the page)'
     });
     
     // Notify all clients in the room about session end
     io.to(roomId).emit('chat:session:end', { roomId });
     
-    console.log(`Visitor left chat room via API: ${roomId}. Chat session ended.`);
+    console.log(`Visitor left chat room via API: ${roomId}. Chat session ended but preserved for admin review.`);
     
     // Always return 200 OK for sendBeacon
     res.status(200).end();

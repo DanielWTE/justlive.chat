@@ -15,7 +15,7 @@ import {
   handleDeleteWebsite 
 } from "./api/websites";
 import { handleEmbedGenerate } from "./api/embed";
-import { handleGetMessages, handleVisitorLeft } from "./api/chat";
+import { handleGetMessages, handleVisitorLeft, handleGetChatRooms } from "./api/chat";
 import { domainWhitelist } from "./middleware/domain";
 import { domainRateLimit } from "./middleware/rateLimit";
 import { authMiddleware } from "./middleware/auth";
@@ -119,6 +119,7 @@ app.get("/embed.js", domainRateLimit, handleEmbedGenerate);
 // Chat routes with different middleware for admin vs visitor
 // Admin route - only requires authentication
 app.get("/chat/messages/:roomId", authMiddleware, handleGetMessages);
+app.get("/chat/rooms", authMiddleware, handleGetChatRooms);
 
 // Visitor routes - require domain whitelist and rate limit
 app.use("/chat/visitor", domainWhitelist, domainRateLimit);

@@ -427,7 +427,7 @@ export const handleChatEvents = (
       // Notify all clients in the room about session end
       io.to(roomId).emit('chat:session:end', { roomId });
       
-      console.log(`Visitor left chat room: ${roomId}. Chat session ended.`);
+      console.log(`Visitor left chat room: ${roomId}. Chat session ended but preserved for admin review.`);
     } catch (error) {
       console.error('Error handling visitor leave:', error);
     }

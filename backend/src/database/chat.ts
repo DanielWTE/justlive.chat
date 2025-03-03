@@ -26,12 +26,17 @@ export const getChatRoomsByWebsiteId = async (websiteId: string) => {
   const rooms = await prisma.chatRoom.findMany({
     where: { 
       websiteId,
-      participants: {
-        some: {} // Only rooms with participants
-      }
+      // participants: {
+      //   some: {} // Only rooms with participants
+      // },
+      // Don't filter by status - show both active and ended chats
     },
     include: {
-      messages: true,
+      messages: {
+        orderBy: {
+          createdAt: 'asc'
+        }
+      },
       participants: true,
     },
     orderBy: {
