@@ -59,6 +59,8 @@ model ChatRoom {
   title        String?
   visitorName  String?
   visitorEmail String?
+  visitorUrl   String?          // Current page URL of the visitor
+  visitorPageTitle String?      // Current page title of the visitor
   lastActivity DateTime         @default(now())
   createdAt    DateTime         @default(now())
 }

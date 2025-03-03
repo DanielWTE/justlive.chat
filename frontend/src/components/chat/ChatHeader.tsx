@@ -2,7 +2,7 @@ import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
-import { X, MessageSquare, Clock, Mail } from "lucide-react";
+import { X, MessageSquare, Clock, Mail, Link, FileText } from "lucide-react";
 
 interface Message {
   id: string;
@@ -22,6 +22,8 @@ interface ChatHeaderProps {
   isActive?: boolean;
   messages?: Message[];
   visitorEmail?: string;
+  visitorUrl?: string;
+  visitorPageTitle?: string;
   visitorStatus?: {
     isOnline: boolean;
     isTyping: boolean;
@@ -38,6 +40,8 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
   isActive = true,
   messages = [],
   visitorEmail,
+  visitorUrl,
+  visitorPageTitle,
   visitorStatus,
 }) => {
   const formatLastSeen = (date: Date) => {
@@ -119,6 +123,18 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
               <div className="flex items-center gap-1">
                 <Mail className="h-3 w-3" />
                 <span>No E-Mail</span>
+              </div>
+            )}
+            {visitorUrl && (
+              <div className="flex items-center gap-1">
+                <Link className="h-3 w-3" />
+                <span title={visitorUrl}>{new URL(visitorUrl).pathname}</span>
+              </div>
+            )}
+            {visitorPageTitle && (
+              <div className="flex items-center gap-1">
+                <FileText className="h-3 w-3" />
+                <span title={visitorPageTitle}>{visitorPageTitle.length > 20 ? `${visitorPageTitle.substring(0, 20)}...` : visitorPageTitle}</span>
               </div>
             )}
           </div>

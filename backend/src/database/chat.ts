@@ -185,13 +185,20 @@ export const deleteChatRoom = async (roomId: string) => {
 // Update visitor info
 export const updateChatRoomVisitorInfo = async (
   roomId: string, 
-  visitorInfo: { name: string; email: string }
+  visitorInfo: { 
+    name: string; 
+    email: string; 
+    url?: string;
+    pageTitle?: string;
+  }
 ) => {
   return prisma.chatRoom.update({
     where: { id: roomId },
     data: {
       visitorName: visitorInfo.name,
       visitorEmail: visitorInfo.email,
+      visitorUrl: visitorInfo.url,
+      visitorPageTitle: visitorInfo.pageTitle,
     },
   });
 }; 

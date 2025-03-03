@@ -171,6 +171,8 @@ export const handleChatEvents = (
     visitorInfo?: { 
       name: string; 
       email: string; 
+      url?: string;
+      pageTitle?: string;
     } 
   }) => {
     try {
@@ -194,8 +196,7 @@ export const handleChatEvents = (
         if (visitorInfo && visitorInfo.name && visitorInfo.email) {
           // Here you would store the visitor info in your database
           // This depends on your database schema and implementation
-          // For example:
-          // await updateChatRoomVisitorInfo(currentRoomId, visitorInfo);
+          await updateChatRoomVisitorInfo(currentRoomId, visitorInfo);
           console.log('Visitor info received:', { roomId: currentRoomId, visitorInfo });
           
           // You might want to emit this info to admins

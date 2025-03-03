@@ -35,9 +35,13 @@ interface ChatWindowProps {
     isAdmin?: boolean;
   };
   visitorEmail?: string;
+  visitorUrl?: string;
+  visitorPageTitle?: string;
   visitorInfo?: {
     name: string;
     email: string;
+    url?: string;
+    pageTitle?: string;
   };
 }
 
@@ -54,6 +58,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   isActive = true,
   visitorStatus,
   visitorEmail,
+  visitorUrl,
+  visitorPageTitle,
   visitorInfo,
 }) => {
   const [isTyping, setIsTyping] = React.useState(false);
@@ -86,6 +92,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         websiteDomain={websiteDomain}
         websiteName={websiteName}
         visitorEmail={visitorEmail || (visitorInfo?.email)}
+        visitorUrl={visitorUrl || (visitorInfo?.url)}
+        visitorPageTitle={visitorPageTitle || (visitorInfo?.pageTitle)}
         visitorStatus={visitorStatus}
         isActive={isActive}
         messages={messages}

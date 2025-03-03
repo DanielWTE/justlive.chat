@@ -1107,14 +1107,18 @@
       timeout: 20000
     });
 
-    let currentRoomId = null;
+    // Get stored room ID from localStorage if available
+    let currentRoomId = localStorage.getItem(`justlive_room_${websiteId}`) || null;
+
     let isConnected = false;
     let isChatEnded = false;
     let agentTyping = false;
     let isAdminOnline = false;
     let visitorInfo = {
       name: 'Visitor',
-      email: ''
+      email: '',
+      url: window.location.href,
+      pageTitle: document.title
     };
     let hasSubmittedInfo = false;
 
@@ -1198,6 +1202,8 @@
       // Set chat as ended
       isChatEnded = true;
       currentRoomId = null; // Reset room ID
+      // Remove room ID from localStorage
+      localStorage.removeItem(`justlive_room_${websiteId}`);
       
       // Disable input
       input.disabled = true;
@@ -1465,8 +1471,14 @@
       
       // Emit join event
       console.log('Emitting chat:join event with visitor info:', hasSubmittedInfo ? visitorInfo : null);
+      
+      // Always update URL and page title on each page load
+      visitorInfo.url = window.location.href;
+      visitorInfo.pageTitle = document.title;
+      
       socket.emit('chat:join', {
         websiteId,
+        roomId: currentRoomId, // Use stored room ID if available
         visitorInfo: hasSubmittedInfo ? visitorInfo : null
       });
       
@@ -1584,8 +1596,13 @@
         }
         
         // Re-emit join event to ensure we get a room ID
+        // Always update URL and page title when sending a message
+        visitorInfo.url = window.location.href;
+        visitorInfo.pageTitle = document.title;
+        
         socket.emit('chat:join', {
           websiteId,
+          roomId: currentRoomId, // Use stored room ID if available
           visitorInfo: hasSubmittedInfo ? visitorInfo : undefined
         });
         
@@ -1596,6 +1613,8 @@
         socket.once('chat:joined', (data) => {
           console.log('Joined chat room after sending message:', data.roomId);
           currentRoomId = data.roomId;
+          // Store room ID in localStorage for session persistence
+          localStorage.setItem(`justlive_room_${websiteId}`, data.roomId);
           
           // Send the message now that we have a room ID
           setTimeout(() => {
@@ -1653,6 +1672,8 @@
     socket.on('chat:joined', (data) => {
       console.log('Joined chat room:', data.roomId);
       currentRoomId = data.roomId;
+      // Store room ID in localStorage for session persistence
+      localStorage.setItem(`justlive_room_${websiteId}`, data.roomId);
       
       // Stelle sicher, dass der Chat aktiv ist
       isChatEnded = false;
@@ -1703,8 +1724,13 @@
       
       // If chat window is open, try to rejoin the room
       if (chatWindow.classList.contains('open') && !isChatEnded) {
+        // Always update URL and page title on reconnect
+        visitorInfo.url = window.location.href;
+        visitorInfo.pageTitle = document.title;
+        
         socket.emit('chat:join', {
           websiteId,
+          roomId: currentRoomId, // Use stored room ID if available
           visitorInfo: hasSubmittedInfo ? visitorInfo : null
         });
       }
@@ -1802,6 +1828,9 @@
       if (!isChatEnded) {
         // Clear the chat
         messagesContainer.innerHTML = '';
+
+        // Remove room ID from localStorage
+        localStorage.removeItem(`justlive_room_${websiteId}`);
         
         // Reset state
         currentRoomId = null;

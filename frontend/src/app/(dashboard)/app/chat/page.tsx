@@ -28,6 +28,8 @@ interface ChatSession {
   visitorInfo?: {
     name: string;
     email: string;
+    url?: string;
+    pageTitle?: string;
   };
   visitorStatus: {
     isOnline: boolean;
@@ -240,6 +242,12 @@ export default function ChatPage() {
               room.lastActivity || room.updatedAt || room.createdAt
             ),
             isActive: room.status === "active",
+            visitorInfo: room.visitorName ? {
+              name: room.visitorName,
+              email: room.visitorEmail || '',
+              url: room.visitorUrl || '',
+              pageTitle: room.visitorPageTitle || '',
+            } : undefined,
             visitorStatus: {
               isOnline: room.participants?.[0]?.isOnline || false,
               isTyping: room.participants?.[0]?.isTyping || false,
@@ -685,7 +693,12 @@ export default function ChatPage() {
           ...prev,
           [data.roomId]: {
             ...prev[data.roomId],
-            visitorInfo: data.visitorInfo,
+            visitorInfo: {
+              name: data.visitorInfo.name,
+              email: data.visitorInfo.email,
+              url: data.visitorInfo.url,
+              pageTitle: data.visitorInfo.pageTitle,
+            },
           },
         };
       });
@@ -1065,6 +1078,8 @@ export default function ChatPage() {
                 visitorStatus={chatSessions[activeRoomId].visitorStatus}
                 isActive={chatSessions[activeRoomId].isActive}
                 visitorInfo={chatSessions[activeRoomId].visitorInfo}
+                visitorUrl={chatSessions[activeRoomId].visitorInfo?.url}
+                visitorPageTitle={chatSessions[activeRoomId].visitorInfo?.pageTitle}
               />
             </div>
           ) : (
