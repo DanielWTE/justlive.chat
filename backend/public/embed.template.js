@@ -41,37 +41,37 @@
       primary: '#1E88E5',
       pulseBackground: 'rgba(30, 136, 229, 0.4)',
       hoverBackground: '#1976D2',
-      textColor: 'white'
+      textColor: 'white',
     },
     green: {
-      primary: '#43A047', // Helleres Grün (Material Design Green 600)
+      primary: '#43A047',
       pulseBackground: 'rgba(67, 160, 71, 0.4)',
-      hoverBackground: '#388E3C', // Material Design Green 700
-      textColor: 'white'
+      hoverBackground: '#388E3C',
+      textColor: 'white',
     },
     purple: {
       primary: '#9C27B0',
       pulseBackground: 'rgba(156, 39, 176, 0.4)',
       hoverBackground: '#8E24AA',
-      textColor: 'white'
+      textColor: 'white',
     },
     red: {
       primary: '#E53935',
       pulseBackground: 'rgba(229, 57, 53, 0.4)',
       hoverBackground: '#D32F2F',
-      textColor: 'white'
+      textColor: 'white',
     },
     orange: {
-      primary: '#F57C00', // Helleres Orange (Material Design Orange 700)
+      primary: '#F57C00',
       pulseBackground: 'rgba(245, 124, 0, 0.4)',
-      hoverBackground: '#EF6C00', // Material Design Orange 800
-      textColor: 'white'
+      hoverBackground: '#EF6C00',
+      textColor: 'white',
     },
     dark: {
       primary: '#111827',
       pulseBackground: 'rgba(55, 65, 81, 0.4)',
       hoverBackground: '#374151',
-      textColor: 'white'
+      textColor: 'white',
     }
   };
   
@@ -1408,8 +1408,10 @@
       // Add welcome message
       const welcomeMessage = document.createElement('div');
       welcomeMessage.className = 'justlive-chat-welcome-message';
-      welcomeMessage.style.backgroundColor = '#f0f9ff';
-      welcomeMessage.style.color = '#0c4a6e';
+      
+      welcomeMessage.style.backgroundColor = '#E2E8F0';
+      welcomeMessage.style.color = '#4A5568';
+      welcomeMessage.style.border = '1px solid #CBD5E0';
       welcomeMessage.style.alignSelf = 'center';
       welcomeMessage.style.textAlign = 'center';
       welcomeMessage.style.maxWidth = '90%';
@@ -1945,8 +1947,9 @@
             
             const newWelcomeMessage = document.createElement('div');
             newWelcomeMessage.className = 'justlive-chat-welcome-message';
-            newWelcomeMessage.style.backgroundColor = '#f0f9ff';
-            newWelcomeMessage.style.color = '#0c4a6e';
+            newWelcomeMessage.style.backgroundColor = '#E2E8F0';
+            newWelcomeMessage.style.color = '#4A5568';
+            newWelcomeMessage.style.border = '1px solid #CBD5E0';
             newWelcomeMessage.style.alignSelf = 'center';
             newWelcomeMessage.style.textAlign = 'center';
             newWelcomeMessage.style.maxWidth = '90%';
