@@ -4,6 +4,7 @@ import React from "react";
 import { io, Socket } from "socket.io-client";
 import { ChatWindow } from "@/components/chat/ChatWindow";
 import { ClientToServerEvents, ServerToClientEvents } from "@/types/socket";
+import { Mail } from "lucide-react";
 
 interface Message {
   id: string;
@@ -913,6 +914,12 @@ export default function ChatPage() {
                         <p className="text-xs text-muted-foreground mb-1">
                           {getWebsiteDomain(session.websiteId)}
                         </p>
+                        {session.visitorInfo?.email && (
+                          <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                            <Mail className="h-3 w-3" />
+                            {session.visitorInfo.email}
+                          </p>
+                        )}
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <span>
                             {session.isActive ? (
@@ -1003,6 +1010,7 @@ export default function ChatPage() {
               websiteName={getWebsiteName(chatSessions[activeRoomId].websiteId)}
               visitorStatus={chatSessions[activeRoomId].visitorStatus}
               isActive={chatSessions[activeRoomId].isActive}
+              visitorInfo={chatSessions[activeRoomId].visitorInfo}
             />
           ) : (
             <div className="flex flex-col items-center justify-center h-full p-4 text-center">

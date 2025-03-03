@@ -749,6 +749,9 @@
     };
     let hasSubmittedInfo = false;
 
+    // Variable, um zu verfolgen, ob der Besucher bereits als "verlassen" gemeldet wurde
+    let visitorLeftReported = false;
+
     // DOM elements
     const messagesContainer = chatWindow.querySelector('.justlive-chat-messages');
     const input = chatWindow.querySelector('.justlive-chat-input');
@@ -869,6 +872,7 @@
       isChatEnded = false;
       currentRoomId = null;
       hasSubmittedInfo = false; // Reset user info status
+      visitorLeftReported = false; // Reset visitor left reported flag
       
       // Reset typing state
       agentTyping = false;
@@ -1031,6 +1035,9 @@
     // Function to initialize chat
     const initializeChat = () => {
       console.log('Initializing chat...');
+      
+      // Reset visitor left reported flag
+      visitorLeftReported = false;
       
       // Clear messages container
       messagesContainer.innerHTML = '';
@@ -1465,15 +1472,29 @@
 
     // Track page visibility and unload
     window.addEventListener('beforeunload', () => {
-      if (currentRoomId && !isChatEnded) {
-        // Beide Methoden verwenden, um sicherzustellen, dass die Nachricht ankommt
-        // Socket-Event für sofortige Verarbeitung
-        socket.emit('chat:visitor:leave', { roomId: currentRoomId });
+      if (currentRoomId && !isChatEnded && !visitorLeftReported) {
+        // Markieren, dass der Besucher als "verlassen" gemeldet wurde
+        visitorLeftReported = true;
         
-        // SendBeacon als Backup für zuverlässige Übertragung während des Entladens der Seite
+        // Nur sendBeacon verwenden, um doppelte Nachrichten zu vermeiden
+        // Socket-Event entfernen, da es zu doppelten Nachrichten führt
+        // socket.emit('chat:visitor:leave', { roomId: currentRoomId });
+        
+        // SendBeacon für zuverlässige Übertragung während des Entladens der Seite
         if (navigator.sendBeacon) {
           const data = JSON.stringify({ roomId: currentRoomId });
-          navigator.sendBeacon(`${BACKEND_URL}/chat/visitor-left`, data);
+          const blob = new Blob([data], { type: 'application/json' });
+          navigator.sendBeacon(`${BACKEND_URL}/chat/visitor-left`, blob);
+        } else {
+          // Fallback für Browser ohne sendBeacon-Unterstützung
+          try {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', `${BACKEND_URL}/chat/visitor-left`, false); // Synchroner Aufruf
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.send(JSON.stringify({ roomId: currentRoomId }));
+          } catch (e) {
+            console.error('Failed to send visitor-left notification:', e);
+          }
         }
       }
     });

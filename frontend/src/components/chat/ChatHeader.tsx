@@ -1,8 +1,8 @@
-import React from 'react';
+import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
-import { X, MessageSquare, Clock } from "lucide-react";
+import { X, MessageSquare, Clock, Mail } from "lucide-react";
 
 interface Message {
   id: string;
@@ -21,6 +21,7 @@ interface ChatHeaderProps {
   websiteName?: string;
   isActive?: boolean;
   messages?: Message[];
+  visitorEmail?: string;
   visitorStatus?: {
     isOnline: boolean;
     isTyping: boolean;
@@ -29,21 +30,22 @@ interface ChatHeaderProps {
   };
 }
 
-export const ChatHeader: React.FC<ChatHeaderProps> = ({ 
-  onClose, 
+export const ChatHeader: React.FC<ChatHeaderProps> = ({
+  onClose,
   isConnected,
   websiteDomain,
   websiteName,
   isActive = true,
   messages = [],
-  visitorStatus
+  visitorEmail,
+  visitorStatus,
 }) => {
   const formatLastSeen = (date: Date) => {
     const now = new Date();
     const diff = now.getTime() - new Date(date).getTime();
     const minutes = Math.floor(diff / 60000);
-    
-    if (minutes < 1) return 'just now';
+
+    if (minutes < 1) return "just now";
     if (minutes < 60) return `${minutes}m ago`;
     if (minutes < 1440) return `${Math.floor(minutes / 60)}h ago`;
     return `${Math.floor(minutes / 1440)}d ago`;
@@ -51,12 +53,13 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
 
   const getLastMessageTime = () => {
     if (messages.length === 0) return null;
-    
+
     // Sort messages by createdAt in descending order
-    const sortedMessages = [...messages].sort((a, b) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    const sortedMessages = [...messages].sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
-    
+
     return sortedMessages[0].createdAt;
   };
 
@@ -70,18 +73,26 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
             {websiteName || websiteDomain}
           </h2>
           {websiteName && (
-            <p className="text-xs text-muted-foreground -mt-0.5 mb-1">{websiteDomain}</p>
+            <p className="text-xs text-muted-foreground -mt-0.5 mb-1">
+              {websiteDomain}
+            </p>
           )}
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             {!isActive && (
-              <Badge variant="destructive" className="h-5 px-1.5 text-white">Chat Ended</Badge>
+              <Badge variant="destructive" className="h-5 px-1.5 text-white">
+                Chat Ended
+              </Badge>
             )}
             {visitorStatus && isActive && (
               <>
                 {visitorStatus.isOnline ? (
-                  <Badge variant="success" className="h-5 px-1.5">Online</Badge>
+                  <Badge variant="success" className="h-5 px-1.5">
+                    Online
+                  </Badge>
                 ) : (
-                  <span>Last seen {formatLastSeen(visitorStatus.lastSeen)}</span>
+                  <span>
+                    Last seen {formatLastSeen(visitorStatus.lastSeen)}
+                  </span>
                 )}
               </>
             )}
@@ -94,17 +105,30 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
             {lastMessageTime && (
               <div className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
-                <span>Last message: {formatLastSeen(new Date(lastMessageTime))}</span>
+                <span>
+                  Last message: {formatLastSeen(new Date(lastMessageTime))}
+                </span>
+              </div>
+            )}
+            {visitorEmail && (
+              <div className="flex items-center gap-1">
+                <Mail className="h-3 w-3" />
+                <span>{visitorEmail}</span>
               </div>
             )}
           </div>
         </div>
       </div>
       <div className="flex items-center space-x-2">
-        <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+          className="h-8 w-8"
+        >
           <X className="h-4 w-4" />
         </Button>
       </div>
     </CardHeader>
   );
-}; 
+};

@@ -34,6 +34,11 @@ interface ChatWindowProps {
     lastSeen: Date;
     isAdmin?: boolean;
   };
+  visitorEmail?: string;
+  visitorInfo?: {
+    name: string;
+    email: string;
+  };
 }
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({
@@ -48,6 +53,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   websiteName,
   isActive = true,
   visitorStatus,
+  visitorEmail,
+  visitorInfo,
 }) => {
   const [isTyping, setIsTyping] = React.useState(false);
   let typingTimeout: NodeJS.Timeout;
@@ -78,6 +85,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         isConnected={isConnected} 
         websiteDomain={websiteDomain}
         websiteName={websiteName}
+        visitorEmail={visitorEmail || (visitorInfo?.email)}
         visitorStatus={visitorStatus}
         isActive={isActive}
         messages={messages}

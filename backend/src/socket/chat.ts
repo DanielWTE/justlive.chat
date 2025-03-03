@@ -519,11 +519,54 @@ export const handleChatEvents = (
         isAdmin: !!socket.data.isAdmin
       });
       
-      // Emit visitor left event
+      // Update room status to ended
+      await updateChatRoomStatus(roomId, 'ended');
+      
+      // Check if a "Visitor left" message already exists
+      const existingLeaveMessage = await prisma.chatMessage.findFirst({
+        where: {
+          roomId,
+          content: 'Visitor left the chat (closed the page)',
+          isSystem: true
+        }
+      });
+      
+      let systemMessage;
+      
+      if (!existingLeaveMessage) {
+        // Add system message about visitor leaving
+        systemMessage = await prisma.chatMessage.create({
+          data: {
+            content: 'Visitor left the chat (closed the page)',
+            isVisitor: false,
+            isSystem: true,
+            roomId: roomId,
+          }
+        });
+      } else {
+        systemMessage = existingLeaveMessage;
+      }
+      
+      // Format the message for socket emission
+      const formattedMessage = {
+        id: systemMessage.id,
+        content: systemMessage.content,
+        roomId: systemMessage.roomId,
+        createdAt: systemMessage.createdAt.toISOString(),
+        isVisitor: systemMessage.isVisitor,
+        isRead: systemMessage.isRead,
+        isSystem: systemMessage.isSystem
+      };
+      
+      // Emit visitor left event with the system message
       io.to(roomId).emit('chat:visitor:left', { 
         roomId,
-        message: 'Visitor left the chat'
+        message: 'Visitor left the chat',
+        systemMessage: formattedMessage
       });
+      
+      // Notify all clients in the room about session end
+      io.to(roomId).emit('chat:session:end', { roomId });
       
       console.log(`Successfully processed visitor leave for room ${roomId}`);
     } catch (error) {
@@ -567,7 +610,6 @@ export const handleChatEvents = (
   socket.on('chat:typing', handleTyping);
   socket.on('chat:session:end', handleSessionEnd);
   socket.on('chat:delete', handleDeleteChat);
-  socket.on('chat:visitor:leave', handleVisitorLeave);
   socket.on('chat:admin:status:request', handleAdminStatusRequest);
 
   // Handle disconnection
