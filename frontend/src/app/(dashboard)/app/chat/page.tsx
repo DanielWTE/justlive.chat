@@ -234,7 +234,7 @@ export default function ChatPage() {
             roomId: room.id,
             websiteId: room.websiteId,
             messages: sortedMessages,
-            lastActivity: new Date(room.updatedAt || room.createdAt),
+            lastActivity: new Date(room.lastActivity || room.updatedAt || room.createdAt),
             isActive: room.status === "active",
             visitorStatus: {
               isOnline: room.participants?.[0]?.isOnline || false,
@@ -881,11 +881,7 @@ export default function ChatPage() {
             ) : (
               Object.values(chatSessions)
                 .sort((a, b) => {
-                  // First sort by active status (active chats first)
-                  if (a.isActive && !b.isActive) return -1;
-                  if (!a.isActive && b.isActive) return 1;
-
-                  // Then sort by lastActivity (most recent first)
+                  // Sort by lastActivity (most recent first)
                   return b.lastActivity.getTime() - a.lastActivity.getTime();
                 })
                 .map((session) => (

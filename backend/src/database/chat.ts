@@ -40,7 +40,7 @@ export const getChatRoomsByWebsiteId = async (websiteId: string) => {
       participants: true,
     },
     orderBy: {
-      createdAt: 'desc'
+      lastActivity: 'desc'
     }
   });
   console.log(`Found ${rooms.length} chat rooms for website ${websiteId}`);
@@ -63,7 +63,8 @@ export const createChatMessage = async (
   isVisitor: boolean = true,
   isSystem: boolean = false
 ) => {
-  return prisma.chatMessage.create({
+  // Create the message
+  const message = await prisma.chatMessage.create({
     data: {
       id: generateId(),
       content,
@@ -73,6 +74,16 @@ export const createChatMessage = async (
       isRead: false
     },
   });
+
+  // Update the room's lastActivity timestamp
+  await prisma.chatRoom.update({
+    where: { id: roomId },
+    data: {
+      lastActivity: new Date()
+    }
+  });
+
+  return message;
 };
 
 export const markMessageAsRead = async (messageId: string) => {
