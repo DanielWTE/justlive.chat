@@ -2,9 +2,67 @@
   // Configuration
   const BACKEND_URL = '{{BACKEND_URL}}';
 
-  // Get website ID from script tag
+  // Get website ID and debug mode from script tag
   const currentScript = document.currentScript;
-  const websiteId = new URL(currentScript.src).searchParams.get('id');
+  const scriptUrl = new URL(currentScript.src);
+  const websiteId = scriptUrl.searchParams.get('id');
+  let debugMode = scriptUrl.searchParams.get('debug') === 'true';
+
+  // Setup logging based on debug mode
+  const originalConsole = {
+    log: console.log,
+    warn: console.warn,
+    error: console.error,
+    info: console.info
+  };
+
+  // Function to toggle debug mode
+  const toggleDebugMode = (enable) => {
+    debugMode = enable === undefined ? !debugMode : !!enable;
+    
+    if (!debugMode) {
+      console.log = function() {};
+      console.warn = function() {};
+      console.info = function() {};
+      // Keep error logging for critical errors
+      console.error = function(message) {
+        if (message && message.toString().includes('JustLive Chat:')) {
+          originalConsole.error.apply(console, arguments);
+        }
+      };
+      originalConsole.log('[JustLive Debug] Debug mode deactivated');
+    } else {
+      // Add prefix to all logs in debug mode
+      console.log = function() {
+        const args = Array.from(arguments);
+        originalConsole.log.apply(console, ['[JustLive Debug]', ...args]);
+      };
+      console.warn = function() {
+        const args = Array.from(arguments);
+        originalConsole.warn.apply(console, ['[JustLive Debug]', ...args]);
+      };
+      console.error = function() {
+        const args = Array.from(arguments);
+        originalConsole.error.apply(console, ['[JustLive Debug]', ...args]);
+      };
+      console.info = function() {
+        const args = Array.from(arguments);
+        originalConsole.info.apply(console, ['[JustLive Debug]', ...args]);
+      };
+      
+      console.log('Debug mode activated');
+    }
+    
+    return debugMode;
+  };
+
+  // Expose debug toggle function globally
+  window.JustLiveChat = window.JustLiveChat || {};
+  window.JustLiveChat.toggleDebug = toggleDebugMode;
+  window.JustLiveChat.isDebugMode = () => debugMode;
+  
+  // Initialize console based on initial debug mode
+  toggleDebugMode(debugMode);
 
   if (!websiteId) {
     console.error('JustLive Chat: Missing website ID');
@@ -1284,15 +1342,11 @@
     });
 
     socket.on('connect_error', (error) => {
-      console.error('Connection error:', error);
       isConnected = false;
-      if (error.message.includes('Authentication failed: Domain mismatch')) {
-        showError('This chat widget is not authorized for this domain. Please check your configuration.', 'Authentication Error');
-      } else if (error.message.includes('Too many connections')) {
-        showError('Too many chat connections from this domain. Please try again later.', 'Connection Limit');
-      } else {
-        showError('Unable to connect to chat server. Please try again later.', 'Connection Failed');
-      }
+      console.error('JustLive Chat: Connection error:', error);
+      
+      // Update UI to show connection error
+      updateConnectionStatus(false);
     });
 
     socket.on('disconnect', () => {
@@ -1333,12 +1387,12 @@
     });
     
     socket.on('reconnect_error', (error) => {
-      console.error('Reconnection error:', error);
+      console.error('JustLive Chat: Reconnection error:', error);
     });
     
     socket.on('reconnect_failed', () => {
-      console.error('Failed to reconnect to chat server');
-      showError('Could not reconnect to chat server. Please refresh the page and try again.', 'Connection Failed');
+      console.error('JustLive Chat: Failed to reconnect to chat server');
+      showError('Could not connect to chat server. Please try again later.', 'Connection Error');
     });
 
     socket.on('chat:message', (message) => {
@@ -1388,8 +1442,8 @@
     });
 
     socket.on('chat:error', (error) => {
-      console.error('Chat error:', error.message);
-      showError(error.message, 'Chat Error');
+      console.error('JustLive Chat: Chat error:', error.message);
+      showError(error.message);
     });
 
     socket.on('chat:session:end', () => {
@@ -1493,7 +1547,7 @@
             xhr.setRequestHeader('Content-Type', 'application/json');
             xhr.send(JSON.stringify({ roomId: currentRoomId }));
           } catch (e) {
-            console.error('Failed to send visitor-left notification:', e);
+            console.error('JustLive Chat: Failed to send visitor-left notification:', e);
           }
         }
       }
