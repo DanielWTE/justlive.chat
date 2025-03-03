@@ -69,7 +69,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           }}
           placeholder={getPlaceholderText()}
           disabled={disabled || !isActive}
-          className="flex-1"
+          className="flex-1 h-10"
         />
         <Button
           type="submit"
