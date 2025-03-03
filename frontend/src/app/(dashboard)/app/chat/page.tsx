@@ -13,6 +13,7 @@ interface Message {
   isVisitor: boolean;
   isRead: boolean;
   readAt?: Date;
+  isSystem?: boolean;
 }
 
 interface ChatSession {
@@ -22,6 +23,10 @@ interface ChatSession {
   lastActivity: Date;
   isActive: boolean;
   visitorId?: string;
+  visitorInfo?: {
+    name: string;
+    email: string;
+  };
   visitorStatus: {
     isOnline: boolean;
     isTyping: boolean;
@@ -94,30 +99,37 @@ export default function ChatPage() {
         setChatSessions((prev) => {
           // Get existing messages for this room
           const existingMessages = prev[roomId]?.messages || [];
-          
+
           // Create a map of existing message IDs for quick lookup
-          const existingMessageIds = new Set(existingMessages.map((msg: Message) => msg.id));
-          
+          const existingMessageIds = new Set(
+            existingMessages.map((msg: Message) => msg.id)
+          );
+
           // Process new messages, converting dates
           const newMessages = data.messages.map((msg: any) => ({
             ...msg,
             createdAt: new Date(msg.createdAt),
             readAt: msg.readAt ? new Date(msg.readAt) : undefined,
+            isSystem: msg.isSystem || false,
           }));
-          
+
           // Filter out messages that already exist in our state
-          const uniqueNewMessages = newMessages.filter((msg: any) => !existingMessageIds.has(msg.id));
-          
-          console.log(`Adding ${uniqueNewMessages.length} unique new messages to room ${roomId}`);
-          
+          const uniqueNewMessages = newMessages.filter(
+            (msg: any) => !existingMessageIds.has(msg.id)
+          );
+
+          console.log(
+            `Adding ${uniqueNewMessages.length} unique new messages to room ${roomId}`
+          );
+
           // Combine existing and new messages
           const combinedMessages = [...existingMessages, ...uniqueNewMessages];
-          
+
           // Sort messages by creation time
           const sortedMessages = combinedMessages.sort(
             (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
           );
-          
+
           return {
             ...prev,
             [roomId]: {
@@ -200,6 +212,7 @@ export default function ChatPage() {
             isVisitor: msg.isVisitor,
             isRead: msg.isRead,
             readAt: msg.readAt ? new Date(msg.readAt) : undefined,
+            isSystem: msg.isSystem || false,
           }));
 
           // Create a map to identify duplicate messages by ID
@@ -210,7 +223,7 @@ export default function ChatPage() {
 
           // Convert back to array with no duplicates
           const uniqueMessages = Array.from(messageMap.values());
-          
+
           // Sort messages by creation time
           const sortedMessages = uniqueMessages.sort(
             (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
@@ -238,23 +251,26 @@ export default function ChatPage() {
         setChatSessions((prev) => {
           // For each new session, check if we already have it
           const updatedSessions: Record<string, ChatSession> = { ...prev };
-          
+
           Object.entries(sessions).forEach(([roomId, newSession]) => {
             if (updatedSessions[roomId]) {
               // If we already have this session, merge the messages
               const existingMessages = updatedSessions[roomId].messages;
-              const existingMessageIds = new Set(existingMessages.map((msg: Message) => msg.id));
-              
+              const existingMessageIds = new Set(
+                existingMessages.map((msg: Message) => msg.id)
+              );
+
               // Filter out messages that already exist
               const uniqueNewMessages = newSession.messages.filter(
                 (msg: Message) => !existingMessageIds.has(msg.id)
               );
-              
+
               // Combine and sort messages
-              const combinedMessages = [...existingMessages, ...uniqueNewMessages].sort(
-                (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
-              );
-              
+              const combinedMessages = [
+                ...existingMessages,
+                ...uniqueNewMessages,
+              ].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+
               // Update the session with merged messages
               updatedSessions[roomId] = {
                 ...newSession,
@@ -265,7 +281,7 @@ export default function ChatPage() {
               updatedSessions[roomId] = newSession;
             }
           });
-          
+
           return updatedSessions;
         });
 
@@ -332,6 +348,8 @@ export default function ChatPage() {
               ...prev[data.roomId],
               isActive: data.isActive,
               lastActivity: new Date(),
+              // Update visitor info if provided
+              ...(data.visitorInfo ? { visitorInfo: data.visitorInfo } : {}),
             },
           };
         }
@@ -351,6 +369,7 @@ export default function ChatPage() {
             lastActivity: new Date(),
             isActive: data.isActive,
             visitorId: data.visitorId,
+            visitorInfo: data.visitorInfo, // Add visitor info
             visitorStatus: {
               isOnline: true,
               isTyping: false,
@@ -415,15 +434,21 @@ export default function ChatPage() {
 
         // Check if this message already exists in the session
         const existingMessages = prev[message.roomId]?.messages || [];
-        const messageExists = existingMessages.some((msg: Message) => msg.id === message.id);
-        
+        const messageExists = existingMessages.some(
+          (msg: Message) => msg.id === message.id
+        );
+
         if (messageExists) {
-          console.log(`Message ${message.id} already exists in room ${message.roomId}, skipping`);
+          console.log(
+            `Message ${message.id} already exists in room ${message.roomId}, skipping`
+          );
           return prev;
         }
 
-        console.log(`Adding new message ${message.id} to room ${message.roomId}`);
-        
+        console.log(
+          `Adding new message ${message.id} to room ${message.roomId}`
+        );
+
         // Otherwise, add the message to the existing session
         return {
           ...prev,
@@ -479,12 +504,91 @@ export default function ChatPage() {
               isOnline: data.isOnline,
               isTyping: data.isTyping,
               lastSeen: new Date(data.lastSeen),
-              isAdmin: data.isAdmin
+              isAdmin: data.isAdmin,
             },
             lastActivity: new Date(),
           },
         };
       });
+    });
+
+    // Handle visitor left event
+    socketInstance.on("chat:visitor:left", (data) => {
+      console.log("Visitor left chat:", data);
+
+      setChatSessions((prev) => {
+        // If we don't have this session yet, ignore the update
+        if (!prev[data.roomId]) {
+          console.log(
+            `Ignoring visitor left event for unknown room ${data.roomId}`
+          );
+          return prev;
+        }
+
+        // Wenn eine System-Nachricht vom Server mitgeschickt wurde, verwenden wir diese
+        let updatedMessages = [...prev[data.roomId].messages];
+        
+        if (data.systemMessage) {
+          // Prüfe, ob diese Nachricht bereits existiert (basierend auf ID oder Inhalt)
+          const messageExists = updatedMessages.some(
+            msg => (msg.id === data.systemMessage?.id) || 
+                  (msg.isSystem && msg.content === data.systemMessage?.content)
+          );
+          
+          if (!messageExists) {
+            // Konvertiere das Datum zurück zu einem Date-Objekt
+            const systemMessage = {
+              ...data.systemMessage,
+              createdAt: new Date(data.systemMessage.createdAt)
+            };
+            
+            // Füge die System-Nachricht hinzu
+            updatedMessages = [...updatedMessages, systemMessage];
+            console.log(`Added system message from server for room ${data.roomId}`);
+          }
+        } else {
+          // Fallback: Erstelle eine lokale System-Nachricht, wenn keine vom Server kommt
+          const systemMessageId = `system-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+          
+          // Prüfe, ob bereits eine ähnliche Nachricht existiert
+          const messageExists = updatedMessages.some(
+            msg => msg.isSystem && msg.content === data.message
+          );
+          
+          if (!messageExists) {
+            const systemMessage = {
+              id: systemMessageId,
+              content: data.message,
+              roomId: data.roomId,
+              createdAt: new Date(),
+              isVisitor: false,
+              isRead: true,
+              isSystem: true
+            };
+            
+            updatedMessages = [...updatedMessages, systemMessage];
+            console.log(`Added local system message for room ${data.roomId}`);
+          }
+        }
+        
+        return {
+          ...prev,
+          [data.roomId]: {
+            ...prev[data.roomId],
+            visitorStatus: {
+              ...prev[data.roomId].visitorStatus,
+              isOnline: false,
+              isTyping: false,
+              lastSeen: new Date(),
+            },
+            messages: updatedMessages,
+            lastActivity: new Date(),
+            isActive: false, // Markiere den Chat als inaktiv
+          },
+        };
+      });
+
+      console.log(`Processed visitor left event for room ${data.roomId}`);
     });
 
     // Handle session end
@@ -551,6 +655,29 @@ export default function ChatPage() {
         const newSet = new Set(prev);
         newSet.delete(data.roomId);
         return newSet;
+      });
+    });
+
+    // Handle visitor info updates
+    socketInstance.on("chat:visitor:info", (data) => {
+      console.log("Visitor info received:", data);
+
+      setChatSessions((prev) => {
+        // If we don't have this session, ignore the update
+        if (!prev[data.roomId]) {
+          console.log(`Ignoring visitor info for unknown room ${data.roomId}`);
+          return prev;
+        }
+
+        console.log(`Updating visitor info for room ${data.roomId}`);
+
+        return {
+          ...prev,
+          [data.roomId]: {
+            ...prev[data.roomId],
+            visitorInfo: data.visitorInfo,
+          },
+        };
       });
     });
 
@@ -802,14 +929,15 @@ export default function ChatPage() {
                           </span>
                           <span>•</span>
                           <span>{session.messages.length} messages</span>
-                          {session.visitorStatus.isTyping && !session.visitorStatus.isAdmin && (
-                            <>
-                              <span>•</span>
-                              <span className="text-xs text-primary animate-pulse">
-                                typing...
-                              </span>
-                            </>
-                          )}
+                          {session.visitorStatus.isTyping &&
+                            !session.visitorStatus.isAdmin && (
+                              <>
+                                <span>•</span>
+                                <span className="text-xs text-primary animate-pulse">
+                                  typing...
+                                </span>
+                              </>
+                            )}
                         </div>
                       </div>
                       <div className="flex flex-col items-end gap-2">

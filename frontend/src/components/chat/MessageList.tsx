@@ -10,6 +10,7 @@ interface Message {
   isVisitor: boolean;
   isRead: boolean;
   readAt?: Date;
+  isSystem?: boolean;
 }
 
 interface MessageListProps {
@@ -99,36 +100,44 @@ export const MessageList: React.FC<MessageListProps> = ({
         <div
           key={message.id}
           className={cn(
-            "flex",
-            message.isVisitor ? "justify-start" : "justify-end"
+            message.isSystem 
+              ? "flex justify-center"
+              : "flex",
+            !message.isSystem && message.isVisitor ? "justify-start" : "justify-end"
           )}
         >
-          <div
-            className={cn(
-              "max-w-[80%] px-3 py-2 rounded-lg",
-              message.isVisitor
-                ? "bg-muted"
-                : "bg-primary text-primary-foreground"
-            )}
-          >
-            <p className="text-sm break-words">{message.content}</p>
-            <div className="flex items-center justify-end gap-2 mt-1">
-              <span className="text-xs opacity-75">
-                {formatTime(message.createdAt)}
-              </span>
-              {!message.isVisitor && (
-                <span className="text-xs">
-                  {message.isRead ? (
-                    <span title={`Read ${message.readAt ? formatTime(message.readAt) : ''}`} className="text-green-500">
-                      ✓✓
-                    </span>
-                  ) : (
-                    <span title="Sent" className="text-muted-foreground">✓</span>
-                  )}
-                </span>
-              )}
+          {message.isSystem ? (
+            <div className="bg-muted/50 px-4 py-2 rounded-md text-sm text-muted-foreground max-w-[80%] text-center my-3 border border-border/50 shadow-sm w-fit mx-auto">
+              {message.content}
             </div>
-          </div>
+          ) : (
+            <div
+              className={cn(
+                "max-w-[80%] px-3 py-2 rounded-lg",
+                message.isVisitor
+                  ? "bg-muted"
+                  : "bg-primary text-primary-foreground"
+              )}
+            >
+              <p className="text-sm break-words">{message.content}</p>
+              <div className="flex items-center justify-end gap-2 mt-1">
+                <span className="text-xs opacity-75">
+                  {formatTime(message.createdAt)}
+                </span>
+                {!message.isVisitor && (
+                  <span className="text-xs">
+                    {message.isRead ? (
+                      <span title={`Read ${message.readAt ? formatTime(message.readAt) : ''}`} className="text-green-500">
+                        ✓✓
+                      </span>
+                    ) : (
+                      <span title="Sent" className="text-muted-foreground">✓</span>
+                    )}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       ))}
       

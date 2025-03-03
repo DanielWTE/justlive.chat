@@ -14,6 +14,7 @@ interface Message {
   isVisitor: boolean;
   isRead: boolean;
   readAt?: Date;
+  isSystem?: boolean;
 }
 
 interface ChatWindowProps {

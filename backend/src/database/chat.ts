@@ -57,13 +57,19 @@ export const getChatMessagesByRoomId = async (roomId: string) => {
   });
 };
 
-export const createChatMessage = async (roomId: string, content: string, isVisitor: boolean = true) => {
+export const createChatMessage = async (
+  roomId: string, 
+  content: string, 
+  isVisitor: boolean = true,
+  isSystem: boolean = false
+) => {
   return prisma.chatMessage.create({
     data: {
       id: generateId(),
       content,
       roomId,
       isVisitor,
+      isSystem,
       isRead: false
     },
   });
@@ -162,5 +168,19 @@ export const deleteChatRoom = async (roomId: string) => {
   // Then delete the room itself
   return prisma.chatRoom.delete({
     where: { id: roomId }
+  });
+};
+
+// Update visitor info
+export const updateChatRoomVisitorInfo = async (
+  roomId: string, 
+  visitorInfo: { name: string; email: string }
+) => {
+  return prisma.chatRoom.update({
+    where: { id: roomId },
+    data: {
+      visitorName: visitorInfo.name,
+      visitorEmail: visitorInfo.email,
+    },
   });
 }; 

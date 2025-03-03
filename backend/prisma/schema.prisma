@@ -41,6 +41,7 @@ model ChatMessage {
   roomId    String
   room      ChatRoom  @relation(fields: [roomId], references: [id])
   isVisitor Boolean   @default(true)
+  isSystem  Boolean   @default(false)
   senderId  String?
   sender    User?     @relation(fields: [senderId], references: [id])
   isRead    Boolean   @default(false)
@@ -56,6 +57,8 @@ model ChatRoom {
   participants ChatParticipant[]
   status       String           @default("active") // active, ended
   title        String?
+  visitorName  String?
+  visitorEmail String?
   lastActivity DateTime         @default(now())
   createdAt    DateTime         @default(now())
 }

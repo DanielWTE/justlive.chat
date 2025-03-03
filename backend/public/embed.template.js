@@ -528,6 +528,110 @@
       background: #0061d5;
       transform: translateY(-1px);
     }
+
+    /* User info form styles */
+    .justlive-chat-user-form {
+      background: #f9fafb;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 16px auto;
+      max-width: 90%;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    .justlive-chat-form-title {
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #111827;
+      text-align: center;
+    }
+    
+    .justlive-chat-form-field {
+      margin-bottom: 12px;
+    }
+    
+    .justlive-chat-form-label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+      color: #4b5563;
+      font-weight: 500;
+    }
+    
+    .justlive-chat-form-input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: all 0.2s ease;
+    }
+    
+    .justlive-chat-form-input:focus {
+      border-color: #0070f3;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(0, 112, 243, 0.1);
+    }
+    
+    .justlive-chat-form-submit {
+      width: 100%;
+      background: #0070f3;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 10px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 500;
+      margin-top: 8px;
+    }
+    
+    .justlive-chat-form-submit:hover {
+      background: #0061d5;
+      transform: translateY(-1px);
+    }
+    
+    .justlive-chat-form-error {
+      color: #ef4444;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+    
+    .justlive-chat-admin-status {
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      margin-left: 8px;
+      font-weight: 500;
+    }
+    
+    .justlive-chat-admin-status.online {
+      background: #dcfce7;
+      color: #166534;
+    }
+    
+    .justlive-chat-admin-status.offline {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    
+    .justlive-chat-admin-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 4px;
+    }
+    
+    .justlive-chat-admin-status.online .justlive-chat-admin-status-dot {
+      background: #22c55e;
+    }
+    
+    .justlive-chat-admin-status.offline .justlive-chat-admin-status-dot {
+      background: #ef4444;
+    }
   `;
   document.head.appendChild(styles);
 
@@ -583,6 +687,10 @@
   chatWindow.innerHTML = `
     <div class="justlive-chat-header">
       <h3 class="justlive-chat-title">Chat with us</h3>
+      <div class="justlive-chat-admin-status offline">
+        <span class="justlive-chat-admin-status-dot"></span>
+        <span class="justlive-chat-admin-status-text">Offline</span>
+      </div>
       <div class="justlive-chat-close">✕</div>
     </div>
     <div class="justlive-chat-messages"></div>
@@ -608,11 +716,34 @@
     let isConnected = false;
     let isChatEnded = false;
     let agentTyping = false;
+    let isAdminOnline = false;
+    let visitorInfo = {
+      name: '',
+      email: ''
+    };
+    let hasSubmittedInfo = false;
 
     // DOM elements
     const messagesContainer = chatWindow.querySelector('.justlive-chat-messages');
     const input = chatWindow.querySelector('.justlive-chat-input');
     const sendButton = chatWindow.querySelector('.justlive-chat-send');
+    const adminStatus = chatWindow.querySelector('.justlive-chat-admin-status');
+    const adminStatusText = adminStatus.querySelector('.justlive-chat-admin-status-text');
+
+    // Update admin status display
+    const updateAdminStatus = (isOnline) => {
+      isAdminOnline = isOnline;
+      
+      if (isOnline) {
+        adminStatus.classList.remove('offline');
+        adminStatus.classList.add('online');
+        adminStatusText.textContent = 'Online';
+      } else {
+        adminStatus.classList.remove('online');
+        adminStatus.classList.add('offline');
+        adminStatusText.textContent = 'Offline';
+      }
+    };
 
     // Helper functions
     const formatTime = (date) => {
@@ -683,6 +814,7 @@
       currentRoomId = null; // Reset room ID
       input.disabled = false;
       sendButton.disabled = false;
+      hasSubmittedInfo = false; // Reset user info status
       
       // Reset typing state
       agentTyping = false;
@@ -696,36 +828,16 @@
         setTimeout(() => {
           if (socket.connected) {
             isConnected = true;
-            // Start new chat session
-            socket.emit('chat:join', { websiteId });
-            addSystemMessage('Welcome to the live chat');
-            
-            // Re-add typing container at the end
-            messagesContainer.appendChild(typingContainer);
-            typingIndicator.style.display = 'none';
-            
-            // Add a small delay to ensure the UI updates
-            setTimeout(() => {
-              messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }, 100);
+            // Show welcome message
+            showWelcomeMessage();
           } else {
             // Falls die Verbindung nicht hergestellt werden konnte
             showError('Unable to connect to chat server. Please try again later.', 'Connection Failed');
           }
         }, 1000);
       } else {
-        // Start new chat session
-        socket.emit('chat:join', { websiteId });
-        addSystemMessage('Welcome to the live chat');
-        
-        // Re-add typing container at the end
-        messagesContainer.appendChild(typingContainer);
-        typingIndicator.style.display = 'none';
-        
-        // Add a small delay to ensure the UI updates
-        setTimeout(() => {
-          messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }, 100);
+        // Show welcome message
+        showWelcomeMessage();
       }
     };
 
@@ -768,7 +880,7 @@
       welcomeEl.innerHTML = `
         <div class="justlive-chat-welcome-title">Welcome to our live chat!</div>
         <div class="justlive-chat-welcome-message">
-          Our team is ready to assist you. Start a conversation by clicking the button below or typing a message.
+          Our team is ${isAdminOnline ? 'online and ready' : 'currently offline but will respond as soon as possible'}. Start a conversation by clicking the button below.
         </div>
         <button class="justlive-chat-start-button">Start Chat</button>
       `;
@@ -779,8 +891,74 @@
       
       // Add event listener for start button
       welcomeEl.querySelector('.justlive-chat-start-button').addEventListener('click', () => {
-        initializeChat();
+        showUserInfoForm();
       });
+    };
+    
+    // Show user info form
+    const showUserInfoForm = () => {
+      messagesContainer.innerHTML = '';
+      
+      const formEl = document.createElement('div');
+      formEl.className = 'justlive-chat-user-form';
+      formEl.innerHTML = `
+        <div class="justlive-chat-form-title">Please provide your information</div>
+        <div class="justlive-chat-form-field">
+          <label class="justlive-chat-form-label" for="visitor-name">Name</label>
+          <input type="text" id="visitor-name" class="justlive-chat-form-input" placeholder="Your name">
+          <div class="justlive-chat-form-error" id="name-error" style="display: none;">Please enter your name</div>
+        </div>
+        <div class="justlive-chat-form-field">
+          <label class="justlive-chat-form-label" for="visitor-email">Email</label>
+          <input type="email" id="visitor-email" class="justlive-chat-form-input" placeholder="Your email address">
+          <div class="justlive-chat-form-error" id="email-error" style="display: none;">Please enter a valid email</div>
+        </div>
+        <button class="justlive-chat-form-submit">Start Chat</button>
+      `;
+      messagesContainer.appendChild(formEl);
+      
+      // Add typing container at the end
+      messagesContainer.appendChild(typingContainer);
+      
+      // Add event listener for form submission
+      const submitButton = formEl.querySelector('.justlive-chat-form-submit');
+      const nameInput = formEl.querySelector('#visitor-name');
+      const emailInput = formEl.querySelector('#visitor-email');
+      const nameError = formEl.querySelector('#name-error');
+      const emailError = formEl.querySelector('#email-error');
+      
+      submitButton.addEventListener('click', () => {
+        let isValid = true;
+        
+        // Validate name
+        if (!nameInput.value.trim()) {
+          nameError.style.display = 'block';
+          isValid = false;
+        } else {
+          nameError.style.display = 'none';
+        }
+        
+        // Validate email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailInput.value.trim() || !emailRegex.test(emailInput.value.trim())) {
+          emailError.style.display = 'block';
+          isValid = false;
+        } else {
+          emailError.style.display = 'none';
+        }
+        
+        if (isValid) {
+          visitorInfo.name = nameInput.value.trim();
+          visitorInfo.email = emailInput.value.trim();
+          hasSubmittedInfo = true;
+          
+          // Initialize chat with visitor info
+          initializeChat();
+        }
+      });
+      
+      // Focus on name input
+      nameInput.focus();
     };
     
     // Initialize chat
@@ -788,12 +966,29 @@
       if (!currentRoomId && !isChatEnded) {
         // Clear any welcome message
         messagesContainer.innerHTML = '';
-        socket.emit('chat:join', { websiteId });
-        // Nur eine System-Nachricht anzeigen
-        addSystemMessage('Welcome to the live chat');
         
-        // Make sure typing container is at the end
-        messagesContainer.appendChild(typingContainer);
+        // Join chat with visitor info
+        socket.emit('chat:join', { 
+          websiteId,
+          visitorInfo: hasSubmittedInfo ? visitorInfo : undefined
+        });
+        
+        // Request admin status and initialize chat when status is received
+        fetchAdminStatus(() => {
+          // Show system message
+          addSystemMessage('Welcome to the live chat');
+          
+          if (hasSubmittedInfo) {
+            // Add a message showing the user's info was submitted
+            addSystemMessage(`Chat started as ${visitorInfo.name} (${visitorInfo.email})`);
+          }
+          
+          // Add admin status message
+          addSystemMessage(isAdminOnline ? 'An agent is online and will respond shortly' : 'No agents are currently online. We\'ll respond as soon as possible.');
+          
+          // Make sure typing container is at the end
+          messagesContainer.appendChild(typingContainer);
+        });
       }
     };
 
@@ -824,9 +1019,17 @@
       
       chatWindow.classList.add('open');
       
+      // Request admin status when chat window opens
+      requestAdminStatus();
+      
       // Show welcome message if no chat is active
       if (!currentRoomId && !isChatEnded) {
-        showWelcomeMessage();
+        // Show user info form if not submitted yet
+        if (!hasSubmittedInfo) {
+          showUserInfoForm();
+        } else {
+          initializeChat();
+        }
       }
     });
 
@@ -841,13 +1044,23 @@
       if (!content) return;
       
       if (!currentRoomId && !isChatEnded) {
+        // If user hasn't submitted info yet, show the form
+        if (!hasSubmittedInfo) {
+          showUserInfoForm();
+          return;
+        }
+        
         // Initialize chat if this is the first message
         initializeChat();
         
         // We'll queue this message to be sent once the room is created
         setTimeout(() => {
           if (currentRoomId) {
-            socket.emit('chat:message', { content, roomId: currentRoomId });
+            socket.emit('chat:message', { 
+              content, 
+              roomId: currentRoomId,
+              visitorInfo: hasSubmittedInfo ? visitorInfo : undefined
+            });
             // Don't create message element here - the socket event will handle it
           } else {
             // Wenn nach dem Timeout immer noch keine Room-ID vorhanden ist, zeige eine Fehlermeldung an
@@ -870,7 +1083,11 @@
         
         input.value = '';
       } else if (currentRoomId && !isChatEnded) {
-        socket.emit('chat:message', { content, roomId: currentRoomId });
+        socket.emit('chat:message', { 
+          content, 
+          roomId: currentRoomId,
+          visitorInfo: hasSubmittedInfo ? visitorInfo : undefined
+        });
         
         // Don't create message element here - the socket event will handle it
         input.value = '';
@@ -1027,10 +1244,11 @@
     socket.on('chat:participant:status', (data) => {
       // Only show typing indicator if the message is from an admin
       if (data.sessionId !== socket.id && data.isAdmin) {
-        // Setze zuerst den Status
-        agentTyping = data.isTyping;
+        // Update admin online status
+        updateAdminStatus(data.isOnline);
         
-        // Dann aktualisiere die Anzeige
+        // Update typing status
+        agentTyping = data.isTyping;
         updateTypingIndicator();
       }
     });
@@ -1081,20 +1299,6 @@
       }
     });
     
-    // Focus input when chat window opens
-    chatWindow.addEventListener('transitionend', () => {
-      if (chatWindow.classList.contains('open')) {
-        input.focus();
-      }
-    });
-    
-    // Add click event to focus input when clicking anywhere in the messages container
-    messagesContainer.addEventListener('click', () => {
-      if (!input.disabled) {
-        input.focus();
-      }
-    });
-    
     // Initialize the chat window state
     if (socket.connected) {
       isConnected = true;
@@ -1118,15 +1322,54 @@
     // Track page visibility and unload
     window.addEventListener('beforeunload', () => {
       if (currentRoomId && !isChatEnded) {
-        // Inform server that user is leaving
+        // Beide Methoden verwenden, um sicherzustellen, dass die Nachricht ankommt
+        // Socket-Event für sofortige Verarbeitung
         socket.emit('chat:visitor:leave', { roomId: currentRoomId });
-        // Use sendBeacon for more reliable delivery during page unload
+        
+        // SendBeacon als Backup für zuverlässige Übertragung während des Entladens der Seite
         if (navigator.sendBeacon) {
           const data = JSON.stringify({ roomId: currentRoomId });
           navigator.sendBeacon(`${BACKEND_URL}/chat/visitor-left`, data);
         }
       }
     });
+
+    // Function to request admin status
+    const requestAdminStatus = () => {
+      // Only request if we're connected
+      if (socket.connected) {
+        socket.emit('chat:admin:status:request', { websiteId });
+      }
+    };
+
+    // Function to fetch admin status and call callback when status is received
+    const fetchAdminStatus = (callback) => {
+      // Set up a one-time event handler for admin status
+      const statusHandler = (data) => {
+        if (data.isAdmin) {
+          // Remove the event handler
+          socket.off('chat:participant:status', statusHandler);
+          
+          // Call the callback
+          callback();
+        }
+      };
+      
+      // Add the event handler
+      socket.on('chat:participant:status', statusHandler);
+      
+      // Request admin status
+      requestAdminStatus();
+      
+      // Set a timeout to call the callback anyway if no response is received
+      setTimeout(() => {
+        // Remove the event handler
+        socket.off('chat:participant:status', statusHandler);
+        
+        // Call the callback if it hasn't been called yet
+        callback();
+      }, 2000);
+    };
   };
 
   document.head.appendChild(script);

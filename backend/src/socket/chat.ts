@@ -13,7 +13,8 @@ import {
   updateParticipantStatus,
   markMessageAsRead,
   updateChatRoomStatus,
-  deleteChatRoom
+  deleteChatRoom,
+  updateChatRoomVisitorInfo
 } from '../database/chat';
 import { prisma } from '../database/prisma';
 
@@ -75,6 +76,9 @@ export const handleChatEvents = (
       }
       admins.add(socket.id);
 
+      // Store websiteId in socket data for later use
+      socket.data.websiteId = websiteId;
+
       // Get existing rooms for this website
       const rooms = await getChatRoomsByWebsiteId(websiteId);
       
@@ -95,7 +99,11 @@ export const handleChatEvents = (
             roomId: room.id,
             websiteId: room.websiteId,
             visitorId: participant.sessionId,
-            isActive: room.status === 'active'
+            isActive: room.status === 'active',
+            visitorInfo: room.visitorName && room.visitorEmail ? {
+              name: room.visitorName,
+              email: room.visitorEmail
+            } : undefined
           });
 
           // Send participant status
@@ -106,6 +114,16 @@ export const handleChatEvents = (
             isTyping: participant.isTyping,
             lastSeen: participant.lastSeen || new Date(),
             isAdmin: false
+          });
+
+          // Notify visitor that admin is online
+          io.to(room.id.toString()).emit('chat:participant:status', {
+            roomId: room.id,
+            sessionId: socket.data.sessionId,
+            isOnline: true,
+            isTyping: false,
+            lastSeen: new Date(),
+            isAdmin: true
           });
         }
 
@@ -123,6 +141,23 @@ export const handleChatEvents = (
         });
       }
 
+      // Notify all active rooms about admin online status
+      // This ensures that visitors who haven't sent a message yet
+      // also get the admin status update
+      const allRooms = await getChatRoomsByWebsiteId(websiteId);
+      for (const room of allRooms) {
+        if (room && room.id && room.status === 'active') {
+          io.to(room.id.toString()).emit('chat:participant:status', {
+            roomId: room.id.toString(),
+            sessionId: 'admin', // Use a generic ID for admin
+            isOnline: true,
+            isTyping: false,
+            lastSeen: new Date(),
+            isAdmin: true
+          });
+        }
+      }
+
       console.log(`Admin subscribed to website ${websiteId}`);
     } catch (error) {
       console.error('Admin subscribe error:', error);
@@ -130,10 +165,17 @@ export const handleChatEvents = (
     }
   };
 
-  const handleJoin = async (data: { websiteId: string; roomId?: string }) => {
+  const handleJoin = async (data: { 
+    websiteId: string; 
+    roomId?: string; 
+    visitorInfo?: { 
+      name: string; 
+      email: string; 
+    } 
+  }) => {
     try {
       console.log('Join attempt:', { socketId: socket.id, data });
-      const { websiteId } = data;
+      const { websiteId, visitorInfo } = data;
       let currentRoomId = data.roomId;
       const { sessionId } = socket.data;
 
@@ -148,6 +190,29 @@ export const handleChatEvents = (
         currentRoomId = room.id;
         console.log('Created new room:', { roomId: currentRoomId, websiteId });
 
+        // Store visitor info if provided
+        if (visitorInfo && visitorInfo.name && visitorInfo.email) {
+          // Here you would store the visitor info in your database
+          // This depends on your database schema and implementation
+          // For example:
+          // await updateChatRoomVisitorInfo(currentRoomId, visitorInfo);
+          console.log('Visitor info received:', { roomId: currentRoomId, visitorInfo });
+          
+          // You might want to emit this info to admins
+          const admins = adminSubscriptions.get(websiteId);
+          if (admins && currentRoomId) {
+            admins.forEach(adminId => {
+              const adminSocket = io.sockets.sockets.get(adminId);
+              if (adminSocket) {
+                adminSocket.emit('chat:visitor:info', {
+                  roomId: currentRoomId || '',
+                  visitorInfo
+                });
+              }
+            });
+          }
+        }
+
         // Notify admins about new chat session
         const admins = adminSubscriptions.get(websiteId);
         if (admins && currentRoomId) {
@@ -159,7 +224,8 @@ export const handleChatEvents = (
                 roomId: currentRoomId || '',
                 websiteId,
                 visitorId: sessionId,
-                isActive: true
+                isActive: true,
+                visitorInfo // Include visitor info in the new session notification
               });
             }
           });
@@ -214,6 +280,23 @@ export const handleChatEvents = (
         isAdmin: !!socket.data.isAdmin
       });
 
+      // Send admin status to the visitor
+      if (!socket.data.isAdmin) {
+        // Check if any admin is online for this website
+        const admins = adminSubscriptions.get(websiteId);
+        const isAdminOnline = !!(admins && admins.size > 0);
+        
+        // Send admin status to the visitor
+        socket.emit('chat:participant:status', {
+          roomId: currentRoomIdString,
+          sessionId: 'admin', // Use a generic ID for admin
+          isOnline: isAdminOnline,
+          isTyping: false,
+          lastSeen: new Date(),
+          isAdmin: true
+        });
+      }
+
       // Emit joined event with room ID
       socket.emit('chat:joined', { roomId: currentRoomIdString });
       console.log('Successfully joined room:', { socketId: socket.id, roomId: currentRoomIdString });
@@ -223,17 +306,40 @@ export const handleChatEvents = (
     }
   };
 
-  const handleMessage = async (data: { content: string; roomId: string; isAdmin?: boolean }) => {
+  const handleMessage = async (data: { 
+    content: string; 
+    roomId: string; 
+    isAdmin?: boolean;
+    visitorInfo?: {
+      name: string;
+      email: string;
+    }
+  }) => {
     try {
       console.log('Message received:', { 
         socketId: socket.id, 
         roomId: data.roomId,
         contentLength: data.content.length,
-        isAdmin: data.isAdmin
+        isAdmin: data.isAdmin,
+        hasVisitorInfo: !!data.visitorInfo
       });
       
-      const { content, roomId } = data;
+      const { content, roomId, visitorInfo } = data;
       const { websiteId, sessionId } = socket.data;
+
+      // If visitor info is provided and this is not an admin, store it
+      if (visitorInfo && !socket.data.isAdmin) {
+        // Here you would update the visitor info in your database
+        // For example:
+        await updateChatRoomVisitorInfo(roomId, visitorInfo);
+        console.log('Visitor info received with message:', { roomId, visitorInfo });
+        
+        // Notify admins about visitor info
+        io.to(roomId).emit('chat:visitor:info', {
+          roomId,
+          visitorInfo
+        });
+      }
 
       // Check rate limit (only for non-admin users)
       if (!socket.data.isAdmin && !checkMessageRateLimit(sessionId)) {
@@ -398,50 +504,55 @@ export const handleChatEvents = (
   const handleVisitorLeave = async (data: { roomId: string }) => {
     try {
       const { roomId } = data;
-      
-      if (!roomId) return;
-      
-      // Get the room
-      const room = await prisma.chatRoom.findUnique({
-        where: { id: roomId },
-        include: { messages: true }
-      });
-      
-      if (!room) return;
-      
-      // Add system message about visitor leaving
-      await prisma.chatMessage.create({
-        data: {
-          content: 'Visitor left the chat (closed the page)',
-          isVisitor: false,
-          roomId: roomId,
-        }
-      });
-      
-      // Update room status to ended
-      await updateChatRoomStatus(roomId, 'ended');
+      console.log(`Handling visitor leave for room ${roomId}`);
       
       // Update participant status
-      await prisma.chatParticipant.updateMany({
-        where: { roomId },
-        data: {
-          isOnline: false,
-          lastSeen: new Date()
-        }
+      await updateParticipantStatus(socket.data.sessionId, false);
+      
+      // Notify room about participant status
+      io.to(roomId).emit('chat:participant:status', {
+        roomId,
+        sessionId: socket.data.sessionId,
+        isOnline: false,
+        isTyping: false,
+        lastSeen: new Date(),
+        isAdmin: !!socket.data.isAdmin
       });
       
-      // Notify admin about visitor leaving and session end
-      io.to(`admin:${room.websiteId}`).emit('chat:visitor:left', { 
-        roomId, 
-        message: 'Visitor left the chat (closed the page)' 
+      // Emit visitor left event
+      io.to(roomId).emit('chat:visitor:left', { 
+        roomId,
+        message: 'Visitor left the chat'
       });
       
-      // Notify all clients in the room about session end
-      io.to(roomId).emit('chat:session:end', { roomId });
-      
-      console.log(`Visitor left chat room: ${roomId}. Chat session ended but preserved for admin review.`);
+      console.log(`Successfully processed visitor leave for room ${roomId}`);
     } catch (error) {
-      console.error('Error handling visitor leave:', error);
+      console.error('Visitor leave error:', error);
+    }
+  };
+
+  // Handle admin status request
+  const handleAdminStatusRequest = async (data: { websiteId: string }) => {
+    try {
+      const { websiteId } = data;
+      
+      // Check if any admin is online for this website
+      const admins = adminSubscriptions.get(websiteId);
+      const isAdminOnline = !!(admins && admins.size > 0);
+      
+      // Send admin status to the requesting client
+      socket.emit('chat:participant:status', {
+        roomId: socket.data.roomId || '',
+        sessionId: 'admin', // Use a generic ID for admin
+        isOnline: isAdminOnline,
+        isTyping: false,
+        lastSeen: new Date(),
+        isAdmin: true
+      });
+      
+      console.log(`Sent admin status (${isAdminOnline ? 'online' : 'offline'}) to client ${socket.id}`);
+    } catch (error) {
+      console.error('Admin status request error:', error);
     }
   };
 
@@ -458,6 +569,10 @@ export const handleChatEvents = (
 
   socket.on('chat:message', handleMessage);
   socket.on('chat:typing', handleTyping);
+  socket.on('chat:session:end', handleSessionEnd);
+  socket.on('chat:delete', handleDeleteChat);
+  socket.on('chat:visitor:leave', handleVisitorLeave);
+  socket.on('chat:admin:status:request', handleAdminStatusRequest);
 
   // Handle disconnection
   socket.on('disconnect', async () => {
@@ -471,6 +586,29 @@ export const handleChatEvents = (
           admins.delete(socket.id);
           if (admins.size === 0) {
             adminSubscriptions.delete(websiteId);
+          }
+          
+          // Get all rooms for this website
+          const rooms = await getChatRoomsByWebsiteId(websiteId);
+          
+          // Check if there are any other admins online
+          const hasOtherAdminsOnline = admins.size > 0;
+          
+          // Notify all visitors in all rooms about admin status
+          for (const room of rooms) {
+            if (room && room.id && room.status === 'active') {
+              // Only notify if this is the last admin going offline
+              if (!hasOtherAdminsOnline) {
+                io.to(room.id.toString()).emit('chat:participant:status', {
+                  roomId: room.id.toString(),
+                  sessionId: sessionId,
+                  isOnline: false,
+                  isTyping: false,
+                  lastSeen: new Date(),
+                  isAdmin: true
+                });
+              }
+            }
           }
         }
       } else if (sessionId && roomId) {
