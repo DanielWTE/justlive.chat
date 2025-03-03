@@ -1,7 +1,7 @@
 'use client';
 
-import { useSession } from "@/lib/hooks/useSession";
-import { useProfile } from "@/lib/hooks/useProfile";
+import { useSession } from "@/hooks/useSession";
+import { useProfile } from "@/hooks/useProfile";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, Edit, Plus } from "lucide-react";

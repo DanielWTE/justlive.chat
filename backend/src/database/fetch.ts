@@ -1,4 +1,4 @@
-import prisma from './client';
+import { prisma } from './prisma';
 
 export const findUserById = async (id: string) => {
   return prisma.user.findUnique({
@@ -9,5 +9,33 @@ export const findUserById = async (id: string) => {
 export const findUserByEmail = async (email: string) => {
   return prisma.user.findUnique({
     where: { email }
+  });
+};
+
+export const findWebsiteById = async (id: string) => {
+  return prisma.website.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      name: true,
+      domain: true,
+      userId: true,
+      createdAt: true,
+      updatedAt: true
+    }
+  });
+};
+
+export const findWebsitesByUserId = async (userId: string) => {
+  return prisma.website.findMany({
+    where: { userId },
+    select: {
+      id: true,
+      name: true,
+      domain: true,
+      userId: true,
+      createdAt: true,
+      updatedAt: true
+    }
   });
 }; 

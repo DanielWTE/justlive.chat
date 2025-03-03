@@ -14,10 +14,62 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
+  id        String    @id @default(cuid())
+  email     String    @unique
   password  String
   name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  websites  Website[]
+  messages  ChatMessage[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Website {
+  id        String     @id @default(cuid())
+  name      String
+  domain    String
+  userId    String
+  user      User       @relation(fields: [userId], references: [id])
+  chatRooms ChatRoom[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model ChatMessage {
+  id        String    @id @default(cuid())
+  content   String
+  roomId    String
+  room      ChatRoom  @relation(fields: [roomId], references: [id])
+  isVisitor Boolean   @default(true)
+  senderId  String?
+  sender    User?     @relation(fields: [senderId], references: [id])
+  isRead    Boolean   @default(false)
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model ChatRoom {
+  id           String            @id @default(cuid())
+  websiteId    String
+  website      Website          @relation(fields: [websiteId], references: [id])
+  messages     ChatMessage[]
+  participants ChatParticipant[]
+  status       String           @default("active") // active, ended
+  title        String?
+  lastActivity DateTime         @default(now())
+  createdAt    DateTime         @default(now())
+}
+
+model ChatParticipant {
+  id           String    @id @default(cuid())
+  sessionId    String    @unique
+  roomId       String
+  room         ChatRoom  @relation(fields: [roomId], references: [id])
+  userAgent    String?
+  ipAddress    String?
+  isOnline     Boolean   @default(true)
+  isTyping     Boolean   @default(false)
+  lastSeen     DateTime  @default(now())
+  lastActivity DateTime  @default(now())
+  createdAt    DateTime  @default(now())
 }

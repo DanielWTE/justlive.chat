@@ -15,4 +15,11 @@ export const updateUserPassword = async (id: string, newPassword: string) => {
     where: { id },
     data: { password: hashedPassword }
   });
+};
+
+export const updateWebsite = async (id: string, data: { name?: string; domain?: string }) => {
+  return prisma.website.update({
+    where: { id },
+    data
+  });
 }; 

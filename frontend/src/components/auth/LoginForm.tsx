@@ -12,7 +12,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { loginSchema, type LoginFormData } from "@/lib/schemas/auth";
+import { loginSchema, type LoginFormData } from "@/schemas/auth";
 import { useState } from "react";
 import Link from "next/link";
 

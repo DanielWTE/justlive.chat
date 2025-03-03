@@ -11,4 +11,14 @@ export const createUser = async (email: string, password: string, name?: string)
       name
     }
   });
+};
+
+export const createWebsite = async (userId: string, name: string, domain: string) => {
+  return prisma.website.create({
+    data: {
+      name,
+      domain,
+      userId
+    }
+  });
 }; 
