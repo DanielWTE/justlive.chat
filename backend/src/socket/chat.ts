@@ -15,6 +15,7 @@ import {
   updateChatRoomStatus,
   deleteChatRoom
 } from '../database/chat';
+import { prisma } from '../database/prisma';
 
 // Rate limiting maps
 const messageRateLimits = new Map<string, { count: number; timestamp: number }>();
@@ -89,10 +90,12 @@ export const handleChatEvents = (
         
         // Notify admin about existing session
         if (participant?.sessionId) {
+          console.log(`Notifying admin about existing session ${room.id} with status ${room.status}`);
           socket.emit('chat:session:new', {
             roomId: room.id,
             websiteId: room.websiteId,
-            visitorId: participant.sessionId
+            visitorId: participant.sessionId,
+            isActive: room.status === 'active'
           });
 
           // Send participant status
@@ -154,7 +157,8 @@ export const handleChatEvents = (
               adminSocket.emit('chat:session:new', {
                 roomId: currentRoomId || '',
                 websiteId,
-                visitorId: sessionId
+                visitorId: sessionId,
+                isActive: true
               });
             }
           });
@@ -318,17 +322,38 @@ export const handleChatEvents = (
   const handleSessionEnd = async (data: { roomId: string }) => {
     try {
       const { roomId } = data;
+      console.log(`Handling session end for room ${roomId}`);
+      
       const room = await getChatRoomById(roomId);
       
       if (room) {
+        console.log(`Found room ${roomId}, updating status to 'ended'`);
+        
         // Update room status in database
         await updateChatRoomStatus(roomId, 'ended');
+        console.log(`Updated room ${roomId} status to 'ended' in database`);
         
         // Notify all clients in the room
+        console.log(`Notifying all clients in room ${roomId} about session end`);
         io.to(roomId).emit('chat:session:end', { roomId });
         
+        // Update participant status
+        console.log(`Updating participant status for room ${roomId}`);
+        await prisma.chatParticipant.updateMany({
+          where: { roomId },
+          data: {
+            isOnline: false,
+            lastSeen: new Date()
+          }
+        });
+        
         // Remove all participants
+        console.log(`Disconnecting all sockets in room ${roomId}`);
         socket.to(roomId).disconnectSockets(true);
+        
+        console.log(`Successfully ended session for room ${roomId}`);
+      } else {
+        console.log(`Room ${roomId} not found, cannot end session`);
       }
     } catch (error) {
       console.error('Session end error:', error);

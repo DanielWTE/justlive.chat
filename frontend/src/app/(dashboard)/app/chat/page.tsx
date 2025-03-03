@@ -34,9 +34,7 @@ export default function ChatPage() {
     ServerToClientEvents,
     ClientToServerEvents
   > | null>(null);
-  const [chatSessions, setChatSessions] = React.useState<
-    Record<string, ChatSession>
-  >({});
+  const [chatSessions, setChatSessions] = React.useState<Record<string, ChatSession>>({});
   const [activeRoomId, setActiveRoomId] = React.useState<string | null>(null);
   const [isConnected, setIsConnected] = React.useState(false);
   const [websites, setWebsites] = React.useState<
@@ -45,51 +43,29 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [loadedMessageRooms, setLoadedMessageRooms] = React.useState<Set<string>>(new Set());
 
-  // Load persisted sessions from localStorage
+  // Load chat sessions from server via socket connection
   React.useEffect(() => {
-    const savedSessions = localStorage.getItem("chatSessions");
-    if (savedSessions) {
-      try {
-        const sessions = JSON.parse(savedSessions) as Record<string, ChatSession>;
-        // Convert date strings back to Date objects
-        Object.values(sessions).forEach((session) => {
-          session.lastActivity = new Date(session.lastActivity);
-          session.messages.forEach((msg) => {
-            msg.createdAt = new Date(msg.createdAt);
-            if (msg.readAt) msg.readAt = new Date(msg.readAt);
-          });
-          session.visitorStatus.lastSeen = new Date(
-            session.visitorStatus.lastSeen
-          );
-        });
-        setChatSessions(sessions);
-        
-        // We'll load message history for active sessions after websites are loaded
-      } catch (error) {
-        console.error("Failed to parse saved sessions:", error);
-      }
-    }
+    // Chat sessions will be loaded from the server via socket connection
+    // when we subscribe to websites
     setIsLoading(false);
   }, []);
 
-  // Save sessions to localStorage when they change
+  // Save chat sessions to localStorage when they change
   React.useEffect(() => {
-    if (!isLoading) {
-      localStorage.setItem("chatSessions", JSON.stringify(chatSessions));
-    }
-  }, [chatSessions, isLoading]);
+    // We no longer need to save chat sessions to localStorage
+    // as they will be loaded from the server
+  }, [chatSessions]);
 
-  // Load message history for a room
+  // Function to load message history for a room
   const loadMessageHistory = React.useCallback(async (roomId: string, websiteId: string) => {
+    // Skip if we've already loaded messages for this room
+    if (loadedMessageRooms.has(roomId)) {
+      console.log(`Messages for room ${roomId} already loaded`);
+      return;
+    }
+
     try {
-      // Skip if we've already loaded messages for this room
-      if (loadedMessageRooms.has(roomId)) {
-        console.log(`Already loaded messages for room ${roomId}, skipping`);
-        return;
-      }
-      
-      console.log(`Loading messages for room ${roomId} with websiteId ${websiteId}`);
-      
+      console.log(`Loading message history for room ${roomId}`);
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}chat/messages/${roomId}`,
         {
@@ -100,7 +76,7 @@ export default function ChatPage() {
           }
         }
       );
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         console.error(`Failed to load messages: ${response.status} ${response.statusText}`, errorData);
@@ -149,7 +125,7 @@ export default function ChatPage() {
       Object.values(chatSessions)
         .filter(session => session.isActive)
         .forEach(session => {
-          console.log(`Loading message history for persisted session ${session.roomId}`);
+          console.log(`Loading message history for session ${session.roomId}`);
           loadMessageHistory(session.roomId, session.websiteId);
         });
     }
@@ -195,6 +171,21 @@ export default function ChatPage() {
       
       // First update the chat sessions state
       setChatSessions((prev) => {
+        // Check if we already have this session
+        if (prev[data.roomId]) {
+          console.log(`Session ${data.roomId} already exists, updating status to ${data.isActive ? 'active' : 'inactive'}`);
+          return {
+            ...prev,
+            [data.roomId]: {
+              ...prev[data.roomId],
+              isActive: data.isActive,
+              lastActivity: new Date()
+            }
+          };
+        }
+        
+        console.log(`Creating new session ${data.roomId} with status ${data.isActive ? 'active' : 'inactive'}`);
+        
         const updatedSessions = {
           ...prev,
           [data.roomId]: {
@@ -202,7 +193,7 @@ export default function ChatPage() {
             websiteId: data.websiteId,
             messages: [],
             lastActivity: new Date(),
-            isActive: true,
+            isActive: data.isActive,
             visitorId: data.visitorId,
             visitorStatus: {
               isOnline: true,
@@ -335,6 +326,13 @@ export default function ChatPage() {
           return prev;
         }
         
+        console.log(`Marking room ${data.roomId} as inactive in local state`);
+        
+        // Check if the session is already marked as inactive
+        if (prev[data.roomId] && !prev[data.roomId].isActive) {
+          console.log(`Room ${data.roomId} is already marked as inactive`);
+        }
+        
         return {
           ...prev,
           [data.roomId]: {
@@ -353,6 +351,7 @@ export default function ChatPage() {
       
       // If this was the active room, clear it
       if (activeRoomId === data.roomId) {
+        console.log(`Clearing active room ID ${data.roomId} due to session end`);
         setActiveRoomId(null);
       }
     });
@@ -426,7 +425,10 @@ export default function ChatPage() {
 
   const handleCloseChat = () => {
     if (socket && activeRoomId) {
-      socket.emit("chat:session:end", { roomId: activeRoomId });
+      console.log(`Closing chat window for room ${activeRoomId}`);
+      
+      // We don't end the session here, just close the window
+      console.log(`Clearing active room ID ${activeRoomId}`);
       setActiveRoomId(null);
     }
   };
@@ -435,30 +437,45 @@ export default function ChatPage() {
   const handleEndChat = (roomId: string, event: React.MouseEvent) => {
     event.stopPropagation(); // Prevent selecting the chat
     
+    console.log(`Ending chat session ${roomId}`);
+    
     if (socket && roomId) {
       // Send end session event to server
+      console.log(`Emitting chat:session:end event for room ${roomId}`);
       socket.emit("chat:session:end", { roomId });
       
       // Update local state to mark session as inactive
-      setChatSessions((prev) => ({
-        ...prev,
-        [roomId]: {
-          ...prev[roomId],
-          isActive: false,
-          visitorStatus: {
-            ...prev[roomId].visitorStatus,
-            isOnline: false,
-            isTyping: false,
-            lastSeen: new Date()
-          },
-          lastActivity: new Date()
+      console.log(`Updating local state to mark session ${roomId} as inactive`);
+      setChatSessions((prev) => {
+        if (!prev[roomId]) {
+          console.log(`Room ${roomId} not found in chat sessions`);
+          return prev;
         }
-      }));
+        
+        console.log(`Setting isActive to false for room ${roomId}`);
+        return {
+          ...prev,
+          [roomId]: {
+            ...prev[roomId],
+            isActive: false,
+            visitorStatus: {
+              ...prev[roomId].visitorStatus,
+              isOnline: false,
+              isTyping: false,
+              lastSeen: new Date()
+            },
+            lastActivity: new Date()
+          }
+        };
+      });
       
       // If this was the active room, clear it
       if (activeRoomId === roomId) {
+        console.log(`Clearing active room ID ${roomId}`);
         setActiveRoomId(null);
       }
+    } else {
+      console.error(`Cannot end chat: socket=${!!socket}, roomId=${roomId}`);
     }
   };
   

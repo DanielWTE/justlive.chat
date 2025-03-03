@@ -12,7 +12,7 @@ export interface ServerToClientEvents {
   'chat:typing': (data: { roomId: string; isTyping: boolean }) => void;
   'chat:error': (error: { message: string }) => void;
   'chat:joined': (data: { roomId: string }) => void;
-  'chat:session:new': (data: { roomId: string; websiteId: string; visitorId: string }) => void;
+  'chat:session:new': (data: { roomId: string; websiteId: string; visitorId: string; isActive: boolean }) => void;
   'chat:session:end': (data: { roomId: string }) => void;
   'chat:participant:status': (data: {
     roomId: string;

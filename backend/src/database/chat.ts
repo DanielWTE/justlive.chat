@@ -22,7 +22,8 @@ export const getChatRoomById = async (roomId: string) => {
 };
 
 export const getChatRoomsByWebsiteId = async (websiteId: string) => {
-  return prisma.chatRoom.findMany({
+  console.log(`Getting chat rooms for website ${websiteId}`);
+  const rooms = await prisma.chatRoom.findMany({
     where: { 
       websiteId,
       participants: {
@@ -37,6 +38,8 @@ export const getChatRoomsByWebsiteId = async (websiteId: string) => {
       createdAt: 'desc'
     }
   });
+  console.log(`Found ${rooms.length} chat rooms for website ${websiteId}`);
+  return rooms;
 };
 
 // Message operations
