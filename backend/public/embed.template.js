@@ -1,6 +1,33 @@
 (() => {
+  /**
+   * JustLive Chat Widget
+   * 
+   * Configuration options:
+   * - id: Website ID (required)
+   * - debug: Enable debug mode (optional, default: false)
+   * - language: Language code (optional, default: browser language, supported: 'en', 'de')
+   * - colorPreset: Color preset name (optional, default: 'blue')
+   * 
+   * Available color presets:
+   * - blue (default): Blue theme with matching pulse animation
+   * - green: Green theme with matching pulse animation
+   * - purple: Purple theme with matching pulse animation
+   * - red: Red theme with matching pulse animation
+   * - orange: Orange theme with matching pulse animation
+   * - dark: Dark theme with matching pulse animation
+   * 
+   * Usage:
+   * <script src="https://api.justlive.chat/embed.js?id=YOUR_WEBSITE_ID&colorPreset=blue"></script>
+   * 
+   * JavaScript API:
+   * - JustLiveChat.getColorPresets(): Returns array of available color preset names
+   * - JustLiveChat.setColorPreset(presetName): Changes the color preset
+   * - JustLiveChat.setLanguage(language): Changes the language ('en' or 'de')
+   * - JustLiveChat.toggleDebug(enable): Toggles debug mode
+   */
+
   // Configuration
-  const BACKEND_URL = '{{BACKEND_URL}}';
+  const BACKEND_URL = '{{BACKEND_URL}}'; // Dynamically set in the api generation
 
   // Get website ID, debug mode, language and primary color from script tag
   const currentScript = document.currentScript;
@@ -8,8 +35,52 @@
   const websiteId = scriptUrl.searchParams.get('id');
   let debugMode = scriptUrl.searchParams.get('debug') === 'true';
   
-  // Get primary color from script tag or use default
-  const primaryColor = scriptUrl.searchParams.get('primaryColor') || '#283747';
+  // Define color presets with matching text and background colors
+  const COLOR_PRESETS = {
+    blue: {
+      primary: '#1E88E5',
+      pulseBackground: 'rgba(30, 136, 229, 0.4)',
+      hoverBackground: '#1976D2',
+      textColor: 'white'
+    },
+    green: {
+      primary: '#43A047', // Helleres Grün (Material Design Green 600)
+      pulseBackground: 'rgba(67, 160, 71, 0.4)',
+      hoverBackground: '#388E3C', // Material Design Green 700
+      textColor: 'white'
+    },
+    purple: {
+      primary: '#9C27B0',
+      pulseBackground: 'rgba(156, 39, 176, 0.4)',
+      hoverBackground: '#8E24AA',
+      textColor: 'white'
+    },
+    red: {
+      primary: '#E53935',
+      pulseBackground: 'rgba(229, 57, 53, 0.4)',
+      hoverBackground: '#D32F2F',
+      textColor: 'white'
+    },
+    orange: {
+      primary: '#F57C00', // Helleres Orange (Material Design Orange 700)
+      pulseBackground: 'rgba(245, 124, 0, 0.4)',
+      hoverBackground: '#EF6C00', // Material Design Orange 800
+      textColor: 'white'
+    },
+    dark: {
+      primary: '#111827',
+      pulseBackground: 'rgba(55, 65, 81, 0.4)',
+      hoverBackground: '#374151',
+      textColor: 'white'
+    }
+  };
+  
+  // Get preset name from script tag or use default (blue)
+  const presetName = scriptUrl.searchParams.get('colorPreset') || 'blue';
+  const selectedPreset = COLOR_PRESETS[presetName] || COLOR_PRESETS.blue;
+  
+  // Get primary color from the selected preset
+  const primaryColor = selectedPreset.primary;
   
   // Get language from script tag or use browser language
   const configLanguage = scriptUrl.searchParams.get('language');
@@ -129,6 +200,22 @@
   window.JustLiveChat.toggleDebug = toggleDebugMode;
   window.JustLiveChat.isDebugMode = () => debugMode;
   
+  // Function to get available color presets
+  window.JustLiveChat.getColorPresets = () => {
+    return Object.keys(COLOR_PRESETS);
+  };
+  
+  // Function to set color preset
+  window.JustLiveChat.setColorPreset = (presetName) => {
+    if (!COLOR_PRESETS[presetName]) {
+      console.error(`JustLive Chat: Invalid color preset "${presetName}". Available presets: ${Object.keys(COLOR_PRESETS).join(', ')}`);
+      return false;
+    }
+    
+    window.JustLiveChat.setPrimaryColor(presetName);
+    return true;
+  };
+  
   // Function to change language
   window.JustLiveChat.setLanguage = (language) => {
     if (language !== 'en' && language !== 'de') {
@@ -171,13 +258,16 @@
     console.log(`JustLive Chat: Language changed to ${language}`);
   };
   
-  // Function to change primary color
-  window.JustLiveChat.setPrimaryColor = (color) => {
-    // Validate color format (basic validation)
-    if (!/^#([0-9A-F]{3}){1,2}$/i.test(color)) {
-      console.error('JustLive Chat: Invalid color format. Please use hex format (e.g., #ff0000).');
+  // Function to change primary color using presets
+  window.JustLiveChat.setPrimaryColor = (presetName) => {
+    // Validate preset name
+    if (!COLOR_PRESETS[presetName]) {
+      console.error(`JustLive Chat: Invalid color preset "${presetName}". Available presets: ${Object.keys(COLOR_PRESETS).join(', ')}`);
       return;
     }
+    
+    const preset = COLOR_PRESETS[presetName];
+    const color = preset.primary;
     
     // Update button color
     const button = document.getElementById('justlive-chat-button');
@@ -220,7 +310,34 @@
       el.style.color = color;
     });
     
-    console.log(`JustLive Chat: Primary color changed to ${color}`);
+    // Update pulse animation background color
+    const style = document.createElement('style');
+    style.textContent = `
+      .justlive-chat-button.admin-online::before {
+        background: ${preset.pulseBackground} !important;
+      }
+      
+      .justlive-chat-send:hover,
+      .justlive-chat-form-submit:hover,
+      .justlive-chat-restart:hover,
+      .justlive-chat-start-button:hover {
+        background: ${preset.hoverBackground} !important;
+      }
+      
+      .justlive-chat-message.visitor {
+        background: ${color} !important;
+        color: ${preset.textColor} !important;
+      }
+      
+      .justlive-chat-input:focus,
+      .justlive-chat-form-input:focus {
+        border-color: ${color} !important;
+        box-shadow: 0 0 0 3px ${preset.pulseBackground} !important;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    console.log(`JustLive Chat: Color preset changed to ${presetName}`);
   };
   
   if (!websiteId) {
@@ -268,7 +385,7 @@
       width: 100%;
       height: 100%;
       border-radius: 50%;
-      background: rgba(0, 112, 243, 0.4);
+      background: ${selectedPreset.pulseBackground};
       z-index: -1;
       animation: pulse 2s infinite;
     }
@@ -389,8 +506,8 @@
     }
 
     .justlive-chat-input:focus {
-      border-color: #0070f3;
-      box-shadow: 0 0 0 3px rgba(0, 112, 243, 0.1);
+      border-color: ${primaryColor};
+      box-shadow: 0 0 0 3px ${selectedPreset.pulseBackground};
     }
 
     .justlive-chat-send {
@@ -406,7 +523,7 @@
     }
 
     .justlive-chat-send:hover {
-      background: #0061d5;
+      background: ${selectedPreset.hoverBackground};
       transform: translateY(-1px);
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
@@ -480,7 +597,6 @@
     .justlive-chat-form-title {
       font-size: 16px;
       font-weight: 600;
-      margin-bottom: 16px;
       color: #1f2937;
     }
     
@@ -513,8 +629,8 @@
     }
     
     .justlive-chat-form-input:focus {
-      border-color: #0070f3;
-      box-shadow: 0 0 0 3px rgba(0, 112, 243, 0.1);
+      border-color: ${primaryColor};
+      box-shadow: 0 0 0 3px ${selectedPreset.pulseBackground};
     }
     
     .justlive-chat-form-error {
@@ -537,7 +653,7 @@
     }
     
     .justlive-chat-form-submit:hover {
-      background: #0061d5;
+      background: ${selectedPreset.hoverBackground};
       transform: translateY(-1px);
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
@@ -686,7 +802,7 @@
     }
 
     .justlive-chat-start-button:hover {
-      background: #0061d5;
+      background: ${selectedPreset.hoverBackground};
       transform: translateY(-1px);
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
@@ -730,7 +846,7 @@
     }
     
     .justlive-chat-restart:hover {
-      background: #0061d5;
+      background: ${selectedPreset.hoverBackground};
       transform: translateY(-1px);
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
@@ -868,7 +984,7 @@
     }
     
     .justlive-chat-restart-button:hover {
-      background: #0061d5;
+      background: ${selectedPreset.hoverBackground};
       transform: translateY(-1px);
     }
   `;
@@ -1862,9 +1978,9 @@
 
   document.head.appendChild(script);
 
-  // Apply primary color to all elements after DOM is loaded
+  // Apply primary color preset after DOM is loaded
   document.addEventListener('DOMContentLoaded', () => {
-    // Apply primary color to all elements
-    window.JustLiveChat.setPrimaryColor(primaryColor);
+    // Apply primary color preset
+    window.JustLiveChat.setPrimaryColor(presetName);
   });
 })(); 
