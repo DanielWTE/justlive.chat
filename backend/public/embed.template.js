@@ -2,11 +2,72 @@
   // Configuration
   const BACKEND_URL = '{{BACKEND_URL}}';
 
-  // Get website ID and debug mode from script tag
+  // Get website ID, debug mode, language and primary color from script tag
   const currentScript = document.currentScript;
   const scriptUrl = new URL(currentScript.src);
   const websiteId = scriptUrl.searchParams.get('id');
   let debugMode = scriptUrl.searchParams.get('debug') === 'true';
+  
+  // Get primary color from script tag or use default
+  const primaryColor = scriptUrl.searchParams.get('primaryColor') || '#283747';
+  
+  // Get language from script tag or use browser language
+  const configLanguage = scriptUrl.searchParams.get('language');
+  const browserLanguage = navigator.language || navigator.userLanguage;
+  const isGerman = configLanguage === 'de' || (!configLanguage && browserLanguage.startsWith('de'));
+  
+  // Translations
+  const translations = {
+    en: {
+      connecting: 'Connecting to chat...',
+      teamOnline: 'Our team is online and ready to help you!',
+      teamOffline: 'Our team is currently offline. Leave a message and we\'ll get back to you soon.',
+      typeMessage: 'Type a message...',
+      yourEmail: 'Your email address',
+      emailExplanation: 'We need your email address to contact you if the conversation is interrupted.',
+      submitEmail: 'Submit',
+      emailRequired: 'Email is required',
+      invalidEmail: 'Please enter a valid email',
+      chatEnded: 'This chat session has ended.',
+      startNewChat: 'Start a new chat',
+      online: 'Online',
+      offline: 'Offline',
+      chatDeleted: 'This chat has been deleted.',
+      error: 'Error',
+      connectionError: 'JustLive Chat: Connection error. Please try again later.',
+      reconnectionError: 'JustLive Chat: Reconnection error. Please refresh the page.',
+      chatError: 'JustLive Chat: An error occurred in the chat. Please try again.',
+      chatWithUs: 'Chat with us',
+      send: 'Send',
+      welcomeTitle: 'Welcome to our chat'
+    },
+    de: {
+      connecting: 'Verbindung zum Chat wird hergestellt...',
+      teamOnline: 'Unser Team ist online und bereit, Ihnen zu helfen!',
+      teamOffline: 'Unser Team ist derzeit offline. Hinterlassen Sie eine Nachricht und wir melden uns in Kürze bei Ihnen.',
+      typeMessage: 'Nachricht eingeben...',
+      yourEmail: 'Ihre E-Mail-Adresse',
+      emailExplanation: 'Wir benötigen Ihre E-Mail-Adresse, um Sie zu kontaktieren, falls das Gespräch unterbrochen wird.',
+      submitEmail: 'Absenden',
+      emailRequired: 'E-Mail ist erforderlich',
+      invalidEmail: 'Bitte geben Sie eine gültige E-Mail-Adresse ein',
+      chatEnded: 'Diese Chat-Sitzung wurde beendet.',
+      startNewChat: 'Neuen Chat starten',
+      online: 'Online',
+      offline: 'Offline',
+      chatDeleted: 'Dieser Chat wurde gelöscht.',
+      error: 'Fehler',
+      connectionError: 'JustLive Chat: Verbindungsfehler. Bitte versuchen Sie es später erneut.',
+      reconnectionError: 'JustLive Chat: Fehler bei der Wiederverbindung. Bitte aktualisieren Sie die Seite.',
+      chatError: 'JustLive Chat: Im Chat ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.',
+      chatWithUs: 'Chatten Sie mit uns',
+      send: 'Senden',
+      welcomeTitle: 'Willkommen in unserem Chat'
+    }
+  };
+  
+  // Get the current language translations
+  const t = isGerman ? translations.de : translations.en;
 
   // Setup logging based on debug mode
   const originalConsole = {
@@ -56,14 +117,108 @@
     return debugMode;
   };
 
-  // Expose debug toggle function globally
+  // Initialize console based on initial debug mode
+  toggleDebugMode(debugMode);
+  
+  // Expose global functions
   window.JustLiveChat = window.JustLiveChat || {};
   window.JustLiveChat.toggleDebug = toggleDebugMode;
   window.JustLiveChat.isDebugMode = () => debugMode;
   
-  // Initialize console based on initial debug mode
-  toggleDebugMode(debugMode);
-
+  // Function to change language
+  window.JustLiveChat.setLanguage = (language) => {
+    if (language !== 'en' && language !== 'de') {
+      console.error('JustLive Chat: Invalid language. Supported languages are "en" and "de".');
+      return;
+    }
+    
+    const newIsGerman = language === 'de';
+    if (newIsGerman === isGerman) return; // No change needed
+    
+    // Update language
+    isGerman = newIsGerman;
+    const newT = isGerman ? translations.de : translations.en;
+    
+    // Update UI elements with new translations
+    const welcomeMessage = document.querySelector('.justlive-chat-welcome-message');
+    if (welcomeMessage) {
+      welcomeMessage.textContent = newT.connecting;
+    }
+    
+    const input = document.querySelector('.justlive-chat-input');
+    if (input) {
+      input.placeholder = newT.typeMessage;
+    }
+    
+    const adminStatus = document.querySelector('.justlive-chat-admin-status');
+    if (adminStatus) {
+      const isOnline = adminStatus.classList.contains('online');
+      adminStatus.querySelector('span:last-child').textContent = isOnline ? newT.online : newT.offline;
+    }
+    
+    // Update welcome message if exists
+    const welcomeEl = document.querySelector('.justlive-chat-welcome');
+    if (welcomeEl && welcomeEl.querySelector('.justlive-chat-welcome-title')) {
+      const isOnline = adminStatus && adminStatus.classList.contains('online');
+      welcomeEl.querySelector('.justlive-chat-welcome-title').textContent = isOnline ? newT.teamOnline : newT.teamOffline;
+      welcomeEl.querySelector('.justlive-chat-welcome-message').textContent = isOnline ? newT.teamOnline : newT.teamOffline;
+    }
+    
+    console.log(`JustLive Chat: Language changed to ${language}`);
+  };
+  
+  // Function to change primary color
+  window.JustLiveChat.setPrimaryColor = (color) => {
+    // Validate color format (basic validation)
+    if (!/^#([0-9A-F]{3}){1,2}$/i.test(color)) {
+      console.error('JustLive Chat: Invalid color format. Please use hex format (e.g., #ff0000).');
+      return;
+    }
+    
+    // Update button color
+    const button = document.getElementById('justlive-chat-button');
+    if (button) {
+      button.style.backgroundColor = color;
+    }
+    
+    // Update header color
+    const header = document.querySelector('.justlive-chat-header');
+    if (header) {
+      header.style.backgroundColor = color;
+    }
+    
+    // Update send button color
+    const sendButton = document.querySelector('.justlive-chat-send');
+    if (sendButton) {
+      sendButton.style.backgroundColor = color;
+    }
+    
+    // Update other buttons
+    const restartButtons = document.querySelectorAll('.justlive-chat-restart');
+    restartButtons.forEach(btn => {
+      btn.style.backgroundColor = color;
+    });
+    
+    const submitButtons = document.querySelectorAll('.justlive-chat-form-submit');
+    submitButtons.forEach(btn => {
+      btn.style.backgroundColor = color;
+    });
+    
+    // Update start button
+    const startButtons = document.querySelectorAll('.justlive-chat-start-button');
+    startButtons.forEach(btn => {
+      btn.style.backgroundColor = color;
+    });
+    
+    // Update any other UI elements with primary color
+    const chatElements = document.querySelectorAll('.justlive-chat-admin-status.online');
+    chatElements.forEach(el => {
+      el.style.color = color;
+    });
+    
+    console.log(`JustLive Chat: Primary color changed to ${color}`);
+  };
+  
   if (!websiteId) {
     console.error('JustLive Chat: Missing website ID');
     return;
@@ -84,7 +239,7 @@
       width: 60px;
       height: 60px;
       border-radius: 30px;
-      background: #0070f3;
+      background: ${primaryColor};
       box-shadow: 0 4px 14px 0 rgba(0, 118, 255, 0.39);
       cursor: pointer;
       transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -162,7 +317,7 @@
 
     .justlive-chat-header {
       padding: 16px;
-      background: #0070f3;
+      background: ${primaryColor};
       color: white;
       border-top-left-radius: 12px;
       border-top-right-radius: 12px;
@@ -236,7 +391,7 @@
 
     .justlive-chat-send {
       padding: 12px 18px;
-      background: #0070f3;
+      background: ${primaryColor};
       color: white;
       border: none;
       border-radius: 8px;
@@ -325,6 +480,12 @@
       color: #1f2937;
     }
     
+    .justlive-chat-form-explanation {
+      font-size: 12px;
+      color: #6b7280;
+      margin-bottom: 16px;
+    }
+    
     .justlive-chat-form-field {
       margin-bottom: 16px;
     }
@@ -361,7 +522,7 @@
     .justlive-chat-form-submit {
       width: 100%;
       padding: 12px;
-      background: #0070f3;
+      background: ${primaryColor};
       color: white;
       border: none;
       border-radius: 8px;
@@ -508,7 +669,7 @@
     }
 
     .justlive-chat-start-button {
-      background: #0070f3;
+      background: ${primaryColor};
       color: white;
       border: none;
       border-radius: 8px;
@@ -553,7 +714,7 @@
     }
     
     .justlive-chat-restart {
-      background: #0070f3;
+      background: ${primaryColor};
       color: white;
       border: none;
       border-radius: 8px;
@@ -690,7 +851,7 @@
     }
 
     .justlive-chat-restart-button {
-      background: #0070f3;
+      background: ${primaryColor};
       color: white;
       border: none;
       border-radius: 4px;
@@ -720,24 +881,45 @@
   document.body.appendChild(errorDisplay);
 
   // Error display functions
-  const showError = (message, title = "Error") => {
-    const errorTitle = errorDisplay.querySelector('.justlive-chat-error-title-text');
-    const errorMessage = errorDisplay.querySelector('.justlive-chat-error-content');
+  const showError = (message, title = t.error) => {
+    console.error(`JustLive Chat: ${message}`);
+    
+    // Create error display if it doesn't exist
+    let errorDisplay = document.getElementById('justlive-chat-error');
+    if (!errorDisplay) {
+      errorDisplay = document.createElement('div');
+      errorDisplay.id = 'justlive-chat-error';
+      errorDisplay.style.position = 'fixed';
+      errorDisplay.style.bottom = '20px';
+      errorDisplay.style.right = '20px';
+      errorDisplay.style.backgroundColor = '#fff';
+      errorDisplay.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+      errorDisplay.style.borderRadius = '8px';
+      errorDisplay.style.padding = '15px';
+      errorDisplay.style.zIndex = '10000';
+      errorDisplay.style.maxWidth = '300px';
+      errorDisplay.style.border = `1px solid ${primaryColor}`;
+      
+      errorDisplay.innerHTML = `
+        <div style="font-weight: bold; margin-bottom: 5px; color: ${primaryColor};" id="justlive-chat-error-title"></div>
+        <div id="justlive-chat-error-message"></div>
+        <button style="background-color: ${primaryColor}; color: white; border: none; padding: 5px 10px; margin-top: 10px; border-radius: 4px; cursor: pointer;" onclick="this.parentNode.remove()">OK</button>
+      `;
+      
+      document.body.appendChild(errorDisplay);
+    }
+    
+    const errorTitle = document.getElementById('justlive-chat-error-title');
+    const errorMessage = document.getElementById('justlive-chat-error-message');
     
     errorTitle.textContent = title;
     errorMessage.textContent = message;
-    errorDisplay.classList.add('show');
     
-    // Add shake animation
-    errorDisplay.style.animation = 'none';
+    // Auto-hide after 10 seconds
     setTimeout(() => {
-      errorDisplay.style.animation = 'slideIn 0.3s ease';
-    }, 10);
-    
-    // Auto-hide after 8 seconds
-    setTimeout(() => {
-      errorDisplay.classList.remove('show');
-    }, 8000);
+      const el = document.getElementById('justlive-chat-error');
+      if (el) el.remove();
+    }, 10000);
   };
 
   errorDisplay.querySelector('.justlive-chat-error-close').addEventListener('click', () => {
@@ -759,20 +941,20 @@
   const chatWindow = document.createElement('div');
   chatWindow.className = 'justlive-chat-window';
   chatWindow.innerHTML = `
-    <div class="justlive-chat-header">
+    <div class="justlive-chat-header" style="background-color: ${primaryColor};">
       <h3 class="justlive-chat-title">
-        Chat with us
+        ${t.chatWithUs}
         <div class="justlive-chat-admin-status offline">
           <span class="justlive-chat-admin-status-dot"></span>
-          <span class="justlive-chat-admin-status-text">Offline</span>
+          <span class="justlive-chat-admin-status-text">${t.offline}</span>
         </div>
       </h3>
       <div class="justlive-chat-close">✕</div>
     </div>
     <div class="justlive-chat-messages"></div>
     <div class="justlive-chat-input-container">
-      <input type="text" class="justlive-chat-input" placeholder="Type a message...">
-      <button class="justlive-chat-send">Send</button>
+      <input type="text" class="justlive-chat-input" placeholder="${t.typeMessage}">
+      <button class="justlive-chat-send" style="background-color: ${primaryColor};">${t.send}</button>
     </div>
   `;
 
@@ -828,14 +1010,16 @@
         if (isAdminOnline) {
           adminStatus.classList.remove('offline');
           adminStatus.classList.add('online');
-          adminStatus.innerHTML = '<span class="justlive-chat-admin-status-dot"></span><span>Online</span>';
+          adminStatus.innerHTML = `<span class="justlive-chat-admin-status-dot" style="width: 8px; height: 8px; background-color: #10b981; border-radius: 50%; display: inline-block;"></span><span>${t.online}</span>`;
+          adminStatus.style.color = '#10b981';
           
           // Add pulse effect to chat button
           chatButton.classList.add('admin-online');
         } else {
           adminStatus.classList.remove('online');
           adminStatus.classList.add('offline');
-          adminStatus.innerHTML = '<span class="justlive-chat-admin-status-dot"></span><span>Offline</span>';
+          adminStatus.innerHTML = `<span class="justlive-chat-admin-status-dot" style="width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%; display: inline-block;"></span><span>${t.offline}</span>`;
+          adminStatus.style.color = '#ef4444';
           
           // Remove pulse effect from chat button
           chatButton.classList.remove('admin-online');
@@ -904,9 +1088,9 @@
       const endedEl = document.createElement('div');
       endedEl.className = 'justlive-chat-ended';
       endedEl.innerHTML = `
-        <div class="justlive-chat-ended-title">Chat session ended</div>
-        <div class="justlive-chat-ended-message">This chat session has been ended by the support agent.</div>
-        <button class="justlive-chat-restart">Start new chat</button>
+        <div class="justlive-chat-ended-title">${t.chatEnded}</div>
+        <div class="justlive-chat-ended-message">${t.teamOffline}</div>
+        <button class="justlive-chat-restart" style="background-color: ${primaryColor};">${t.startNewChat}</button>
       `;
       messagesContainer.appendChild(endedEl);
       
@@ -956,7 +1140,7 @@
           } else {
             console.log('Failed to reconnect');
             // Falls die Verbindung nicht hergestellt werden konnte
-            showError('Unable to connect to chat server. Please try again later.', 'Connection Failed');
+            showError(t.connectionError, t.error);
           }
         }, 1000);
       } else {
@@ -1014,11 +1198,11 @@
         const welcomeEl = document.createElement('div');
         welcomeEl.className = 'justlive-chat-welcome';
         welcomeEl.innerHTML = `
-          <div class="justlive-chat-welcome-title">Welcome to our live chat!</div>
+          <div class="justlive-chat-welcome-title">${t.welcomeTitle}</div>
           <div class="justlive-chat-welcome-message">
-            Our team is ${isAdminOnline ? 'online and ready' : 'currently offline but will respond as soon as possible'}. Start a conversation by clicking the button below.
+            ${isAdminOnline ? t.teamOnline : t.teamOffline}
           </div>
-          <button class="justlive-chat-start-button">Start Chat</button>
+          <button class="justlive-chat-start-button" style="background-color: ${primaryColor};">${t.startNewChat}</button>
         `;
         messagesContainer.appendChild(welcomeEl);
         
@@ -1045,13 +1229,14 @@
       const formEl = document.createElement('div');
       formEl.className = 'justlive-chat-user-form';
       formEl.innerHTML = `
-        <div class="justlive-chat-form-title">Please provide your email</div>
+        <div class="justlive-chat-form-title">${t.yourEmail}</div>
+        <div class="justlive-chat-form-explanation">${t.emailExplanation}</div>
         <div class="justlive-chat-form-field">
-          <label class="justlive-chat-form-label" for="visitor-email">Email</label>
-          <input type="email" id="visitor-email" class="justlive-chat-form-input" placeholder="Your email address">
-          <div class="justlive-chat-form-error" id="email-error" style="display: none;">Please enter a valid email</div>
+          <label class="justlive-chat-form-label" for="visitor-email">${t.yourEmail}</label>
+          <input type="email" id="visitor-email" class="justlive-chat-form-input" placeholder="${t.yourEmail}">
+          <div class="justlive-chat-form-error" id="email-error" style="display: none;">${t.invalidEmail}</div>
         </div>
-        <button class="justlive-chat-form-submit">Start Chat</button>
+        <button class="justlive-chat-form-submit" style="background-color: ${primaryColor};">${t.submitEmail}</button>
       `;
       messagesContainer.appendChild(formEl);
       
@@ -1112,7 +1297,7 @@
       welcomeMessage.style.marginBottom = '16px';
       welcomeMessage.style.marginTop = '8px';
       welcomeMessage.style.padding = '10px 15px';
-      welcomeMessage.textContent = 'Connecting to chat...';
+      welcomeMessage.textContent = t.connecting;
       messagesContainer.appendChild(welcomeMessage);
       
       // Enable input and send button
@@ -1156,12 +1341,12 @@
               // Starte einen neuen Chat
               restartChat();
             } else {
-              showError('Chat is currently unavailable. Please try again later.', 'Connection Error');
+              showError(t.connectionError, t.error);
             }
           }, 1000);
           return;
         } else {
-          showError('Chat is currently unavailable. Please try again later.', 'Connection Error');
+          showError(t.connectionError, t.error);
           return;
         }
       }
@@ -1299,7 +1484,7 @@
         input.focus();
       } else if (isChatEnded) {
         console.log('Chat has ended, cannot send message');
-        showError('This chat has ended. Please start a new chat to continue.', 'Chat Ended');
+        showError(t.chatEnded, t.error);
         input.value = '';
       }
     };
@@ -1358,7 +1543,7 @@
       button.style.pointerEvents = 'none';
       
       if (chatWindow.classList.contains('open') && !isChatEnded) {
-        showError('Connection to chat server lost. We\'re trying to reconnect you...', 'Connection Lost');
+        showError(t.connectionError, t.error);
       }
     });
 
@@ -1392,7 +1577,7 @@
     
     socket.on('reconnect_failed', () => {
       console.error('JustLive Chat: Failed to reconnect to chat server');
-      showError('Could not connect to chat server. Please try again later.', 'Connection Error');
+      showError(t.connectionError, t.error);
     });
 
     socket.on('chat:message', (message) => {
@@ -1443,7 +1628,7 @@
 
     socket.on('chat:error', (error) => {
       console.error('JustLive Chat: Chat error:', error.message);
-      showError(error.message);
+      showError(error.message, t.error);
     });
 
     socket.on('chat:session:end', () => {
@@ -1488,9 +1673,9 @@
         const deletedEl = document.createElement('div');
         deletedEl.className = 'justlive-chat-ended';
         deletedEl.innerHTML = `
-          <div class="justlive-chat-ended-title">Chat session deleted</div>
-          <div class="justlive-chat-ended-message">This chat session has been deleted by the support agent.</div>
-          <button class="justlive-chat-restart">Start new chat</button>
+          <div class="justlive-chat-ended-title">${t.chatDeleted}</div>
+          <div class="justlive-chat-ended-message">${t.teamOffline}</div>
+          <button class="justlive-chat-restart" style="background-color: ${primaryColor};">${t.startNewChat}</button>
         `;
         messagesContainer.appendChild(deletedEl);
         
@@ -1627,9 +1812,9 @@
         if (welcomeMessage) {
           console.log('Updating welcome message with admin status:', isAdminOnline);
           if (isAdminOnline) {
-            welcomeMessage.textContent = 'Our team is online and ready to help you!';
+            welcomeMessage.textContent = t.teamOnline;
           } else {
-            welcomeMessage.textContent = 'Our team is currently offline. Leave a message and we\'ll get back to you soon.';
+            welcomeMessage.textContent = t.teamOffline;
           }
         } else {
           console.log('Welcome message element not found');
@@ -1651,9 +1836,9 @@
             newWelcomeMessage.style.padding = '10px 15px';
             
             if (isAdminOnline) {
-              newWelcomeMessage.textContent = 'Our team is online and ready to help you!';
+              newWelcomeMessage.textContent = t.teamOnline;
             } else {
-              newWelcomeMessage.textContent = 'Our team is currently offline. Leave a message and we\'ll get back to you soon.';
+              newWelcomeMessage.textContent = t.teamOffline;
             }
             
             // Add to beginning of messages container
@@ -1672,4 +1857,10 @@
   };
 
   document.head.appendChild(script);
+
+  // Apply primary color to all elements after DOM is loaded
+  document.addEventListener('DOMContentLoaded', () => {
+    // Apply primary color to all elements
+    window.JustLiveChat.setPrimaryColor(primaryColor);
+  });
 })(); 
