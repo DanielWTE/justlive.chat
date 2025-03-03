@@ -4,7 +4,8 @@ import React from "react";
 import { io, Socket } from "socket.io-client";
 import { ChatWindow } from "@/components/chat/ChatWindow";
 import { ClientToServerEvents, ServerToClientEvents } from "@/types/socket";
-import { Mail } from "lucide-react";
+import { Mail, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface Message {
   id: string;
@@ -53,6 +54,7 @@ export default function ChatPage() {
   const [loadedMessageRooms, setLoadedMessageRooms] = React.useState<
     Set<string>
   >(new Set());
+  const [isMobileView, setIsMobileView] = React.useState(false);
 
   // Load chat sessions from server via socket connection
   React.useEffect(() => {
@@ -723,6 +725,32 @@ export default function ChatPage() {
     }
   }, [activeRoomId, chatSessions, loadMessageHistory]);
 
+  // Check if we're on mobile view
+  React.useEffect(() => {
+    const checkMobileView = () => {
+      setIsMobileView(window.innerWidth < 768);
+    };
+    
+    // Initial check
+    checkMobileView();
+    
+    // Add event listener for window resize
+    window.addEventListener('resize', checkMobileView);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', checkMobileView);
+  }, []);
+
+  // Function to handle selecting a chat session
+  const handleSelectChatSession = (roomId: string) => {
+    setActiveRoomId(roomId);
+  };
+
+  // Function to go back to chat list on mobile
+  const handleBackToList = () => {
+    setActiveRoomId(null);
+  };
+
   const handleSendMessage = (content: string) => {
     if (socket && activeRoomId && isConnected) {
       console.log("Sending message:", { content, roomId: activeRoomId });
@@ -850,33 +878,33 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex-1 space-y-4 p-8 pt-6">
-      <div className="flex items-center justify-between">
+    <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
+      <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Live Chat</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Live Chat</h2>
+          <p className="text-sm md:text-base text-muted-foreground">
             Manage your active chat sessions with website visitors
           </p>
         </div>
       </div>
 
-      <div className="flex h-[calc(100vh-10rem)] gap-4">
-        {/* Chat Sessions List */}
-        <div className="w-1/3 border rounded-lg shadow-sm overflow-hidden bg-card">
-          <div className="p-4 border-b flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Chat Sessions</h3>
+      <div className="flex flex-col md:flex-row h-[calc(100vh-8rem)] md:h-[calc(100vh-10rem)] gap-2 md:gap-4">
+        {/* Chat Sessions List - Hidden on mobile when a chat is active */}
+        <div className={`md:w-1/3 w-full border rounded-lg shadow-sm overflow-hidden bg-card flex flex-col ${isMobileView && activeRoomId ? 'hidden' : 'block'}`}>
+          <div className="p-3 md:p-4 border-b flex items-center justify-between">
+            <h3 className="text-base md:text-lg font-semibold">Chat Sessions</h3>
             <div className="flex items-center gap-2">
               <div
                 className={`w-2 h-2 rounded-full ${
                   isConnected ? "bg-green-500" : "bg-red-500"
                 }`}
               />
-              <span className="text-sm text-muted-foreground">
+              <span className="text-xs md:text-sm text-muted-foreground">
                 {isConnected ? "Connected" : "Disconnected"}
               </span>
             </div>
           </div>
-          <div className="overflow-y-auto h-[calc(100%-4rem)]">
+          <div className="overflow-y-auto flex-1">
             {Object.values(chatSessions).length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full p-4 text-center">
                 <p className="text-muted-foreground mb-2">No chat sessions</p>
@@ -894,19 +922,19 @@ export default function ChatPage() {
                 .map((session) => (
                   <div
                     key={session.roomId}
-                    className={`p-4 border-b cursor-pointer hover:bg-accent transition-colors ${
+                    className={`p-3 md:p-4 border-b cursor-pointer hover:bg-accent transition-colors ${
                       activeRoomId === session.roomId ? "bg-accent" : ""
                     } ${
                       !session.isActive
                         ? "opacity-85 border-l-4 border-l-red-500"
                         : "opacity-85 border-l-4 border-l-green-500"
                     }`}
-                    onClick={() => setActiveRoomId(session.roomId)}
+                    onClick={() => handleSelectChatSession(session.roomId)}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <p className="font-medium">
+                          <p className="font-medium text-sm md:text-base">
                             {getWebsiteName(session.websiteId)}
                           </p>
                           {session.isActive &&
@@ -920,7 +948,9 @@ export default function ChatPage() {
                         {session.visitorInfo?.email ? (
                           <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
                             <Mail className="h-3 w-3" />
-                            {session.visitorInfo.email}
+                            <span className="truncate max-w-[150px] md:max-w-full">
+                              {session.visitorInfo.email}
+                            </span>
                           </p>
                         ) : (
                           <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
@@ -928,7 +958,7 @@ export default function ChatPage() {
                             No E-Mail
                           </p>
                         )}
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <div className="flex flex-wrap items-center gap-1 md:gap-2 text-xs md:text-sm text-muted-foreground">
                           <span>
                             {session.isActive ? (
                               session.visitorStatus.isOnline ? (
@@ -1001,25 +1031,42 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {/* Chat Window */}
-        <div className="flex-1 border rounded-lg shadow-sm overflow-hidden">
+        {/* Chat Window - Full width on mobile when a chat is active */}
+        <div className={`md:flex-1 w-full border rounded-lg shadow-sm overflow-hidden ${isMobileView && !activeRoomId ? 'hidden' : 'flex flex-col h-full'}`}>
+          {/* Back button for mobile view */}
+          {isMobileView && activeRoomId && (
+            <div className="p-2 border-b sticky top-0 bg-background z-10">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleBackToList}
+                className="flex items-center gap-1 text-sm"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back to chats</span>
+              </Button>
+            </div>
+          )}
+          
           {activeRoomId && chatSessions[activeRoomId] ? (
-            <ChatWindow
-              websiteId={chatSessions[activeRoomId].websiteId}
-              roomId={activeRoomId}
-              onSendMessage={handleSendMessage}
-              onClose={handleCloseChat}
-              socket={socket}
-              isConnected={isConnected}
-              messages={chatSessions[activeRoomId].messages}
-              websiteDomain={getWebsiteDomain(
-                chatSessions[activeRoomId].websiteId
-              )}
-              websiteName={getWebsiteName(chatSessions[activeRoomId].websiteId)}
-              visitorStatus={chatSessions[activeRoomId].visitorStatus}
-              isActive={chatSessions[activeRoomId].isActive}
-              visitorInfo={chatSessions[activeRoomId].visitorInfo}
-            />
+            <div className="flex-1 flex flex-col h-full">
+              <ChatWindow
+                websiteId={chatSessions[activeRoomId].websiteId}
+                roomId={activeRoomId}
+                onSendMessage={handleSendMessage}
+                onClose={handleCloseChat}
+                socket={socket}
+                isConnected={isConnected}
+                messages={chatSessions[activeRoomId].messages}
+                websiteDomain={getWebsiteDomain(
+                  chatSessions[activeRoomId].websiteId
+                )}
+                websiteName={getWebsiteName(chatSessions[activeRoomId].websiteId)}
+                visitorStatus={chatSessions[activeRoomId].visitorStatus}
+                isActive={chatSessions[activeRoomId].isActive}
+                visitorInfo={chatSessions[activeRoomId].visitorInfo}
+              />
+            </div>
           ) : (
             <div className="flex flex-col items-center justify-center h-full p-4 text-center">
               <p className="text-muted-foreground mb-2">

@@ -79,7 +79,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   }, [messages, socket, isConnected, roomId]);
 
   return (
-    <Card className="flex flex-col h-full overflow-hidden border rounded-lg shadow-sm py-0 gap-0">
+    <Card className="flex flex-col h-full overflow-hidden border-none rounded-lg shadow-sm py-0 gap-0">
       <ChatHeader 
         onClose={onClose} 
         isConnected={isConnected} 
