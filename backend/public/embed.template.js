@@ -39,7 +39,9 @@
       chatError: 'JustLive Chat: An error occurred in the chat. Please try again.',
       chatWithUs: 'Chat with us',
       send: 'Send',
-      welcomeTitle: 'Welcome to our chat'
+      welcomeTitle: 'Welcome to our chat',
+      agentEndedChat: 'The agent has ended the chat.',
+      agentDeletedChat: 'The agent has deleted the chat.'
     },
     de: {
       connecting: 'Verbindung zum Chat wird hergestellt...',
@@ -62,7 +64,9 @@
       chatError: 'JustLive Chat: Im Chat ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.',
       chatWithUs: 'Chatten Sie mit uns',
       send: 'Senden',
-      welcomeTitle: 'Willkommen in unserem Chat'
+      welcomeTitle: 'Willkommen in unserem Chat',
+      agentEndedChat: 'Der Agent hat das Gespräch beendet.',
+      agentDeletedChat: 'Der Agent hat den Chat gelöscht.'
     }
   };
   
@@ -578,7 +582,7 @@
     }
 
     .justlive-chat-message.visitor {
-      background: #0070f3;
+      background: ${primaryColor};
       color: white;
       align-self: flex-end;
       border-bottom-right-radius: 4px;
@@ -1089,7 +1093,7 @@
       endedEl.className = 'justlive-chat-ended';
       endedEl.innerHTML = `
         <div class="justlive-chat-ended-title">${t.chatEnded}</div>
-        <div class="justlive-chat-ended-message">${t.teamOffline}</div>
+        <div class="justlive-chat-ended-message">${t.agentEndedChat}</div>
         <button class="justlive-chat-restart" style="background-color: ${primaryColor};">${t.startNewChat}</button>
       `;
       messagesContainer.appendChild(endedEl);
@@ -1674,7 +1678,7 @@
         deletedEl.className = 'justlive-chat-ended';
         deletedEl.innerHTML = `
           <div class="justlive-chat-ended-title">${t.chatDeleted}</div>
-          <div class="justlive-chat-ended-message">${t.teamOffline}</div>
+          <div class="justlive-chat-ended-message">${t.agentDeletedChat}</div>
           <button class="justlive-chat-restart" style="background-color: ${primaryColor};">${t.startNewChat}</button>
         `;
         messagesContainer.appendChild(deletedEl);
