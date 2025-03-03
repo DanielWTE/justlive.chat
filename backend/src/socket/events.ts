@@ -20,6 +20,7 @@ export interface ServerToClientEvents {
     isOnline: boolean;
     isTyping: boolean;
     lastSeen: Date;
+    isAdmin: boolean;
   }) => void;
   'chat:message:read': (data: { messageId: string; roomId: string; readAt: Date }) => void;
   'chat:room:deleted': (data: { roomId: string }) => void;

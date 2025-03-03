@@ -31,6 +31,7 @@ interface ChatWindowProps {
     isOnline: boolean;
     isTyping: boolean;
     lastSeen: Date;
+    isAdmin?: boolean;
   };
 }
 
@@ -52,6 +53,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
   // Handle typing indicator
   const handleTyping = (typing: boolean) => {
+    setIsTyping(typing);
     if (socket && isConnected) {
       socket.emit('chat:typing', { roomId, isTyping: typing });
     }
@@ -84,6 +86,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           <MessageList 
             messages={messages} 
             isTyping={visitorStatus?.isTyping}
+            isAdminTyping={isTyping}
           />
         </div>
         {!isActive && (

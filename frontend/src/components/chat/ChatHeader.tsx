@@ -25,6 +25,7 @@ interface ChatHeaderProps {
     isOnline: boolean;
     isTyping: boolean;
     lastSeen: Date;
+    isAdmin?: boolean;
   };
 }
 
@@ -81,9 +82,6 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
                   <Badge variant="success" className="h-5 px-1.5">Online</Badge>
                 ) : (
                   <span>Last seen {formatLastSeen(visitorStatus.lastSeen)}</span>
-                )}
-                {visitorStatus.isTyping && (
-                  <span className="text-muted-foreground">• typing...</span>
                 )}
               </>
             )}

@@ -104,7 +104,8 @@ export const handleChatEvents = (
             sessionId: participant.sessionId,
             isOnline: participant.isOnline,
             isTyping: participant.isTyping,
-            lastSeen: participant.lastSeen || new Date()
+            lastSeen: participant.lastSeen || new Date(),
+            isAdmin: false
           });
         }
 
@@ -193,14 +194,24 @@ export const handleChatEvents = (
       socket.join(currentRoomIdString);
       socket.data.roomId = currentRoomIdString;
 
-      // Notify about participant status
-      const lastSeen = new Date();
-      io.to(currentRoomIdString).emit('chat:participant:status', {
+      // Send current participant status to the new participant
+      socket.emit('chat:participant:status', {
         roomId: currentRoomIdString,
-        sessionId,
+        sessionId: socket.data.sessionId,
         isOnline: true,
         isTyping: false,
-        lastSeen
+        lastSeen: new Date(),
+        isAdmin: !!socket.data.isAdmin
+      });
+
+      // Notify room about the new participant
+      io.to(currentRoomIdString).emit('chat:participant:status', {
+        roomId: currentRoomIdString,
+        sessionId: socket.data.sessionId,
+        isOnline: true,
+        isTyping: false,
+        lastSeen: new Date(),
+        isAdmin: !!socket.data.isAdmin
       });
 
       // Emit joined event with room ID
@@ -303,7 +314,7 @@ export const handleChatEvents = (
   const handleTyping = async (data: { roomId: string; isTyping: boolean }) => {
     try {
       const { roomId, isTyping } = data;
-      const { sessionId } = socket.data;
+      const { sessionId, isAdmin } = socket.data;
 
       await updateParticipantTyping(sessionId, isTyping, roomId);
 
@@ -312,7 +323,8 @@ export const handleChatEvents = (
         sessionId,
         isTyping,
         isOnline: true,
-        lastSeen: new Date()
+        lastSeen: new Date(),
+        isAdmin: !!isAdmin
       });
     } catch (error) {
       console.error('Typing status error:', error);
@@ -469,13 +481,13 @@ export const handleChatEvents = (
             await updateParticipantStatus(sessionId, false);
             
             // Notify about offline status
-            const lastSeen = new Date();
             io.to(roomId).emit('chat:participant:status', {
               roomId,
               sessionId,
               isOnline: false,
               isTyping: false,
-              lastSeen
+              lastSeen: new Date(),
+              isAdmin: !!socket.data.isAdmin
             });
 
             await removeChatParticipant(sessionId);

@@ -15,9 +15,14 @@ interface Message {
 interface MessageListProps {
   messages: Message[];
   isTyping?: boolean;
+  isAdminTyping?: boolean;
 }
 
-export const MessageList: React.FC<MessageListProps> = ({ messages, isTyping }) => {
+export const MessageList: React.FC<MessageListProps> = ({ 
+  messages, 
+  isTyping,
+  isAdminTyping = false
+}) => {
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [shouldScrollToBottom, setShouldScrollToBottom] = React.useState(true);
@@ -127,14 +132,15 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isTyping }) 
         </div>
       ))}
       
-      {isTyping && (
-        <div className="flex items-center gap-2 text-muted-foreground text-sm">
-          <div className="flex space-x-1">
-            <Skeleton className="h-2 w-2 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-            <Skeleton className="h-2 w-2 rounded-full animate-bounce" style={{ animationDelay: "200ms" }} />
-            <Skeleton className="h-2 w-2 rounded-full animate-bounce" style={{ animationDelay: "400ms" }} />
+      {isTyping && !isAdminTyping && (
+        <div className="flex justify-start mb-2">
+          <div className="bg-muted px-3 py-2 rounded-lg max-w-[80px] shadow-sm">
+            <div className="flex items-center space-x-1.5 py-0.5">
+              <div className="h-2.5 w-2.5 rounded-full bg-primary/80 animate-pulse" style={{ animationDelay: "0ms", animationDuration: "1.2s" }} />
+              <div className="h-2.5 w-2.5 rounded-full bg-primary/80 animate-pulse" style={{ animationDelay: "300ms", animationDuration: "1.2s" }} />
+              <div className="h-2.5 w-2.5 rounded-full bg-primary/80 animate-pulse" style={{ animationDelay: "600ms", animationDuration: "1.2s" }} />
+            </div>
           </div>
-          <span>typing...</span>
         </div>
       )}
       

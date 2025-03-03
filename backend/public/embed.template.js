@@ -116,6 +116,9 @@
       padding: 16px;
       background: #ffffff;
       scroll-behavior: smooth;
+      display: flex;
+      flex-direction: column;
+      position: relative;
     }
 
     .justlive-chat-input-container {
@@ -166,10 +169,10 @@
     }
 
     .justlive-chat-message {
-      margin-bottom: 12px;
-      max-width: 80%;
-      padding: 10px 14px;
-      border-radius: 12px;
+      margin-bottom: 4px;
+      max-width: 100%;
+      padding: 12px 16px;
+      border-radius: 18px;
       font-size: 14px;
       line-height: 1.5;
       position: relative;
@@ -177,6 +180,32 @@
       animation: messageIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       transition: all 0.2s ease;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      display: inline-block;
+      width: auto;
+    }
+    
+    .justlive-chat-message-time {
+      font-size: 10px;
+      color: #9ca3af;
+      margin-top: 4px;
+      text-align: right;
+      opacity: 0.8;
+    }
+    
+    .justlive-chat-message-wrapper {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 8px;
+      max-width: 80%;
+    }
+    
+    .justlive-chat-message-wrapper.visitor {
+      align-self: flex-end;
+      margin-left: auto;
+    }
+    
+    .justlive-chat-message-wrapper.agent {
+      align-self: flex-start;
     }
     
     .justlive-chat-message:hover {
@@ -197,32 +226,44 @@
     .justlive-chat-message.visitor {
       background: #0070f3;
       color: white;
-      margin-left: auto;
+      align-self: flex-end;
       border-bottom-right-radius: 4px;
     }
 
     .justlive-chat-message.agent {
       background: #f3f4f6;
-      color: #111827;
+      color: #1f2937;
+      align-self: flex-start;
       border-bottom-left-radius: 4px;
     }
 
     .justlive-chat-message.system {
       background: #f3f4f6;
       color: #6b7280;
-      margin: 12px auto;
+      margin-left: auto;
+      margin-right: auto;
       text-align: center;
-      max-width: 85%;
-      font-size: 12px;
+      font-size: 13px;
+      padding: 8px 14px;
       border-radius: 8px;
-      animation: fadeIn 0.4s ease;
-      padding: 8px 12px;
+      max-width: 80%;
+      font-weight: 500;
       border: 1px solid #e5e7eb;
-      box-shadow: none;
-      font-style: italic;
-      opacity: 0.9;
     }
     
+    .justlive-chat-message-wrapper.system {
+      align-self: center;
+      margin-left: auto;
+      margin-right: auto;
+      max-width: 80%;
+      margin-bottom: 16px;
+      margin-top: 8px;
+    }
+    
+    .justlive-chat-message-wrapper.system .justlive-chat-message-time {
+      text-align: center;
+    }
+
     .justlive-chat-message.system::before {
       content: '';
       display: block;
@@ -243,26 +284,19 @@
       opacity: 0.7;
     }
 
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.1); opacity: 1; }
+    }
+    
     @keyframes fadeIn {
       from { opacity: 0; }
       to { opacity: 1; }
     }
-
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(20px) scale(0.95);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-    }
     
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-      20%, 40%, 60%, 80% { transform: translateX(5px); }
+    @keyframes slideUp {
+      from { transform: translateY(10px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
     }
 
     .justlive-chat-timestamp {
@@ -426,32 +460,73 @@
     .justlive-chat-typing {
       background: #f3f4f6;
       color: #6b7280;
-      padding: 8px 12px;
-      border-radius: 12px;
+      padding: 10px;
+      border-radius: 18px;
+      border-bottom-left-radius: 4px;
       font-size: 12px;
-      margin: 8px 0 8px 10px;
-      max-width: 120px;
+      margin: 0;
+      width: 60px;
+      height: 30px;
       position: relative;
-      animation: fadeIn 0.3s ease;
       display: flex;
       align-items: center;
-      font-style: italic;
+      justify-content: center;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      transition: opacity 0.3s ease;
+    }
+    
+    .justlive-chat-typing::before,
+    .justlive-chat-typing::after,
+    .justlive-chat-typing .dot {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: #6b7280;
+      margin: 0 3px;
+      opacity: 0.8;
+    }
+    
+    .justlive-chat-typing::before {
+      animation: pulse 1.2s infinite;
+      animation-delay: 0s;
     }
     
     .justlive-chat-typing::after {
-      content: '...';
-      display: inline-block;
-      width: 12px;
-      text-align: left;
-      animation: ellipsis 1.5s infinite;
-      margin-left: 4px;
+      animation: pulse 1.2s infinite;
+      animation-delay: 0.6s;
     }
     
-    @keyframes ellipsis {
-      0% { content: '.'; }
-      33% { content: '..'; }
-      66% { content: '...'; }
-      100% { content: '.'; }
+    .justlive-chat-typing .dot {
+      animation: pulse 1.2s infinite;
+      animation-delay: 0.3s;
+    }
+    
+    .justlive-chat-typing-container {
+      position: relative;
+      margin-top: 8px;
+      margin-bottom: 8px;
+      align-self: flex-start;
+      transition: all 0.3s ease;
+    }
+
+    .justlive-chat-restart-button {
+      background: #0070f3;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 8px 12px;
+      margin-top: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    
+    .justlive-chat-restart-button:hover {
+      background: #0061d5;
+      transform: translateY(-1px);
     }
   `;
   document.head.appendChild(styles);
@@ -553,17 +628,35 @@
     };
 
     const addSystemMessage = (message) => {
+      // Create wrapper for message and timestamp
+      const wrapperElement = document.createElement('div');
+      wrapperElement.className = 'justlive-chat-message-wrapper system';
+      
+      // Create message element
       const messageEl = document.createElement('div');
       messageEl.className = 'justlive-chat-message system';
       messageEl.textContent = message;
-      messagesContainer.appendChild(messageEl);
+      
+      // Bei Systemnachrichten keine Zeitanzeige hinzufügen
+      
+      // Add message to wrapper
+      wrapperElement.appendChild(messageEl);
+      
+      // Add wrapper to messages container
+      messagesContainer.appendChild(wrapperElement);
+      
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     };
 
     const showChatEnded = () => {
       isChatEnded = true;
+      currentRoomId = null; // Reset room ID
       input.disabled = true;
       sendButton.disabled = true;
+      
+      // Hide typing indicator
+      agentTyping = false;
+      updateTypingIndicator();
       
       const endedEl = document.createElement('div');
       endedEl.className = 'justlive-chat-ended';
@@ -573,11 +666,14 @@
         <button class="justlive-chat-restart">Start new chat</button>
       `;
       messagesContainer.appendChild(endedEl);
+      
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
       
-      endedEl.querySelector('.justlive-chat-restart').addEventListener('click', () => {
-        restartChat();
-      });
+      // Direkter Aufruf von restartChat bei Klick auf den Button
+      const restartButton = endedEl.querySelector('.justlive-chat-restart');
+      if (restartButton) {
+        restartButton.addEventListener('click', restartChat);
+      }
     };
 
     const restartChat = () => {
@@ -588,32 +684,80 @@
       input.disabled = false;
       sendButton.disabled = false;
       
-      // Start new chat session
-      socket.emit('chat:join', { websiteId });
-      addSystemMessage('Starting new chat session');
+      // Reset typing state
+      agentTyping = false;
       
-      // Add a small delay to ensure the UI updates
-      setTimeout(() => {
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-      }, 100);
+      // Stelle sicher, dass wir verbunden sind
+      if (!isConnected) {
+        // Versuche, die Verbindung wiederherzustellen
+        socket.connect();
+        
+        // Warte kurz, bis die Verbindung hergestellt ist
+        setTimeout(() => {
+          if (socket.connected) {
+            isConnected = true;
+            // Start new chat session
+            socket.emit('chat:join', { websiteId });
+            addSystemMessage('Welcome to the live chat');
+            
+            // Re-add typing container at the end
+            messagesContainer.appendChild(typingContainer);
+            typingIndicator.style.display = 'none';
+            
+            // Add a small delay to ensure the UI updates
+            setTimeout(() => {
+              messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 100);
+          } else {
+            // Falls die Verbindung nicht hergestellt werden konnte
+            showError('Unable to connect to chat server. Please try again later.', 'Connection Failed');
+          }
+        }, 1000);
+      } else {
+        // Start new chat session
+        socket.emit('chat:join', { websiteId });
+        addSystemMessage('Welcome to the live chat');
+        
+        // Re-add typing container at the end
+        messagesContainer.appendChild(typingContainer);
+        typingIndicator.style.display = 'none';
+        
+        // Add a small delay to ensure the UI updates
+        setTimeout(() => {
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }, 100);
+      }
     };
 
-    const updateTypingIndicator = () => {
-      // Remove existing indicator if any
-      const existingIndicator = messagesContainer.querySelector('.justlive-chat-typing');
-      if (existingIndicator) {
-        existingIndicator.remove();
-      }
-      
-      // Add new indicator if agent is typing
+    // Create typing indicator element once
+    const typingIndicator = document.createElement('div');
+    typingIndicator.className = 'justlive-chat-typing';
+    typingIndicator.style.display = 'none';
+    
+    // Add middle dot (the ::before and ::after pseudo-elements create the first and third dots)
+    const dotEl = document.createElement('span');
+    dotEl.className = 'dot';
+    typingIndicator.appendChild(dotEl);
+    
+    // Create a container for the typing indicator
+    const typingContainer = document.createElement('div');
+    typingContainer.className = 'justlive-chat-typing-container';
+    typingContainer.appendChild(typingIndicator);
+    
+    // Add to messages container
+    messagesContainer.appendChild(typingContainer);
+    
+    function updateTypingIndicator() {
       if (agentTyping) {
-        const typingEl = document.createElement('div');
-        typingEl.className = 'justlive-chat-typing';
-        typingEl.textContent = 'Agent is typing';
-        messagesContainer.appendChild(typingEl);
+        typingIndicator.style.display = 'flex';
+        if (!messagesContainer.contains(typingContainer)) {
+          messagesContainer.appendChild(typingContainer);
+        }
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      } else {
+        typingIndicator.style.display = 'none';
       }
-    };
+    }
 
     // Show welcome message with start button
     const showWelcomeMessage = () => {
@@ -622,13 +766,16 @@
       const welcomeEl = document.createElement('div');
       welcomeEl.className = 'justlive-chat-welcome';
       welcomeEl.innerHTML = `
-        <div class="justlive-chat-welcome-title">Welcome to our chat!</div>
+        <div class="justlive-chat-welcome-title">Welcome to our live chat!</div>
         <div class="justlive-chat-welcome-message">
-          Need help? Our team is here to assist you. Start a conversation by clicking the button below or typing a message.
+          Our team is ready to assist you. Start a conversation by clicking the button below or typing a message.
         </div>
         <button class="justlive-chat-start-button">Start Chat</button>
       `;
       messagesContainer.appendChild(welcomeEl);
+      
+      // Add typing container at the end
+      messagesContainer.appendChild(typingContainer);
       
       // Add event listener for start button
       welcomeEl.querySelector('.justlive-chat-start-button').addEventListener('click', () => {
@@ -642,16 +789,39 @@
         // Clear any welcome message
         messagesContainer.innerHTML = '';
         socket.emit('chat:join', { websiteId });
-        addSystemMessage('Connecting to support');
+        // Nur eine System-Nachricht anzeigen
+        addSystemMessage('Welcome to the live chat');
+        
+        // Make sure typing container is at the end
+        messagesContainer.appendChild(typingContainer);
       }
     };
 
     // Event handlers
     button.addEventListener('click', () => {
       if (!isConnected) {
-        showError('Chat is currently unavailable. Please try again later.', 'Connection Error');
-        return;
+        // Versuche, die Verbindung wiederherzustellen, wenn der Chat beendet wurde
+        if (isChatEnded) {
+          socket.connect();
+          
+          // Warte kurz, bis die Verbindung hergestellt ist
+          setTimeout(() => {
+            if (socket.connected) {
+              isConnected = true;
+              chatWindow.classList.add('open');
+              // Starte einen neuen Chat
+              restartChat();
+            } else {
+              showError('Chat is currently unavailable. Please try again later.', 'Connection Error');
+            }
+          }, 1000);
+          return;
+        } else {
+          showError('Chat is currently unavailable. Please try again later.', 'Connection Error');
+          return;
+        }
       }
+      
       chatWindow.classList.add('open');
       
       // Show welcome message if no chat is active
@@ -679,6 +849,22 @@
           if (currentRoomId) {
             socket.emit('chat:message', { content, roomId: currentRoomId });
             // Don't create message element here - the socket event will handle it
+          } else {
+            // Wenn nach dem Timeout immer noch keine Room-ID vorhanden ist, zeige eine Fehlermeldung an
+            showError('Could not establish chat connection. Please try again.', 'Connection Error');
+            
+            // Füge einen Button hinzu, um einen neuen Chat zu starten
+            const errorDisplay = document.querySelector('.justlive-chat-error');
+            if (errorDisplay) {
+              const restartButton = document.createElement('button');
+              restartButton.className = 'justlive-chat-restart-button';
+              restartButton.textContent = 'Start New Chat';
+              restartButton.addEventListener('click', () => {
+                errorDisplay.classList.remove('show');
+                restartChat();
+              });
+              errorDisplay.appendChild(restartButton);
+            }
           }
         }, 1000); // Give the server a second to create the room
         
@@ -694,7 +880,24 @@
           addTimestamp();
         }
       } else if (isChatEnded) {
+        // Wenn der Chat beendet wurde, biete an, einen neuen Chat zu starten
         showError('This chat has ended. Please start a new chat to continue.', 'Chat Ended');
+        
+        // Füge einen Button hinzu, um einen neuen Chat zu starten
+        const errorDisplay = document.querySelector('.justlive-chat-error');
+        if (errorDisplay) {
+          const restartButton = document.createElement('button');
+          restartButton.className = 'justlive-chat-restart-button';
+          restartButton.textContent = 'Start New Chat';
+          restartButton.addEventListener('click', () => {
+            errorDisplay.classList.remove('show');
+            restartChat();
+          });
+          errorDisplay.querySelector('.justlive-chat-error-content').appendChild(restartButton);
+        }
+        
+        // Leere das Eingabefeld
+        input.value = '';
       }
     };
 
@@ -709,17 +912,35 @@
     socket.on('connect', () => {
       console.log('Connected to chat server');
       isConnected = true;
+      
+      // Aktiviere den Chat-Button, wenn er deaktiviert war
+      button.style.opacity = '1';
+      button.style.pointerEvents = 'auto';
     });
 
     socket.on('chat:joined', (data) => {
       console.log('Joined chat room:', data.roomId);
       currentRoomId = data.roomId;
-      addSystemMessage('Connected to support');
-      addTimestamp();
+      
+      // Stelle sicher, dass der Chat aktiv ist
+      isChatEnded = false;
+      input.disabled = false;
+      sendButton.disabled = false;
+      isConnected = true;
+      
+      // Stelle sicher, dass der Chat-Container leer ist, wenn wir einen neuen Chat starten
+      if (messagesContainer.children.length === 0) {
+        addTimestamp();
+      }
       
       // Enable input if it was disabled
       input.disabled = false;
       sendButton.disabled = false;
+      
+      // Fokus auf das Eingabefeld setzen
+      if (chatWindow.classList.contains('open')) {
+        input.focus();
+      }
     });
 
     socket.on('connect_error', (error) => {
@@ -737,7 +958,12 @@
     socket.on('disconnect', () => {
       console.log('Disconnected from chat server');
       isConnected = false;
-      if (chatWindow.classList.contains('open')) {
+      
+      // Deaktiviere den Chat-Button
+      button.style.opacity = '0.7';
+      button.style.pointerEvents = 'none';
+      
+      if (chatWindow.classList.contains('open') && !isChatEnded) {
         showError('Connection to chat server lost. We\'re trying to reconnect you...', 'Connection Lost');
       }
     });
@@ -749,12 +975,42 @@
         updateTypingIndicator();
       }
       
+      // Create wrapper for message and timestamp
+      const wrapperElement = document.createElement('div');
+      wrapperElement.className = `justlive-chat-message-wrapper ${
+        message.isVisitor ? 'visitor' : 'agent'
+      }`;
+      
+      // Create message element
       const messageElement = document.createElement('div');
       messageElement.className = `justlive-chat-message ${
         message.isVisitor ? 'visitor' : 'agent'
       }`;
       messageElement.textContent = message.content;
-      messagesContainer.appendChild(messageElement);
+      
+      // Create timestamp element
+      const timeElement = document.createElement('div');
+      timeElement.className = 'justlive-chat-message-time';
+      timeElement.textContent = formatTime(new Date());
+      
+      // Add message and timestamp to wrapper
+      wrapperElement.appendChild(messageElement);
+      wrapperElement.appendChild(timeElement);
+      
+      // Entferne den Typing-Container vorübergehend, wenn er vorhanden ist
+      const hasTypingContainer = messagesContainer.contains(typingContainer);
+      if (hasTypingContainer) {
+        messagesContainer.removeChild(typingContainer);
+      }
+      
+      // Add wrapper to messages container
+      messagesContainer.appendChild(wrapperElement);
+      
+      // Füge den Typing-Container wieder hinzu, wenn er vorher vorhanden war und der Agent tippt
+      if (hasTypingContainer && agentTyping) {
+        messagesContainer.appendChild(typingContainer);
+      }
+      
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     });
 
@@ -768,9 +1024,13 @@
       showChatEnded();
     });
 
-    socket.on('chat:typing', (data) => {
-      if (!data.isVisitor) {
+    socket.on('chat:participant:status', (data) => {
+      // Only show typing indicator if the message is from an admin
+      if (data.sessionId !== socket.id && data.isAdmin) {
+        // Setze zuerst den Status
         agentTyping = data.isTyping;
+        
+        // Dann aktualisiere die Anzeige
         updateTypingIndicator();
       }
     });
@@ -788,6 +1048,9 @@
       input.disabled = true;
       sendButton.disabled = true;
       
+      // Reset typing state
+      agentTyping = false;
+      
       // Show deleted message
       const deletedEl = document.createElement('div');
       deletedEl.className = 'justlive-chat-ended';
@@ -800,7 +1063,10 @@
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
       
       // Add event listener for restart button
-      deletedEl.querySelector('.justlive-chat-restart').addEventListener('click', restartChat);
+      const restartButton = deletedEl.querySelector('.justlive-chat-restart');
+      if (restartButton) {
+        restartButton.addEventListener('click', restartChat);
+      }
     });
 
     // Handle typing events
@@ -830,17 +1096,20 @@
     });
     
     // Initialize the chat window state
-    if (isConnected) {
+    if (socket.connected) {
+      isConnected = true;
       // If we're already connected, make sure the button is enabled
       button.style.opacity = '1';
       button.style.pointerEvents = 'auto';
     } else {
+      isConnected = false;
       // If not connected, disable the button until connection is established
       button.style.opacity = '0.7';
       button.style.pointerEvents = 'none';
       
       // Re-enable once connected
       socket.on('connect', () => {
+        isConnected = true;
         button.style.opacity = '1';
         button.style.pointerEvents = 'auto';
       });

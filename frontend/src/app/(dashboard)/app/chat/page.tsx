@@ -26,6 +26,7 @@ interface ChatSession {
     isOnline: boolean;
     isTyping: boolean;
     lastSeen: Date;
+    isAdmin?: boolean;
   };
 }
 
@@ -478,6 +479,7 @@ export default function ChatPage() {
               isOnline: data.isOnline,
               isTyping: data.isTyping,
               lastSeen: new Date(data.lastSeen),
+              isAdmin: data.isAdmin
             },
             lastActivity: new Date(),
           },
@@ -800,7 +802,7 @@ export default function ChatPage() {
                           </span>
                           <span>•</span>
                           <span>{session.messages.length} messages</span>
-                          {session.visitorStatus.isTyping && (
+                          {session.visitorStatus.isTyping && !session.visitorStatus.isAdmin && (
                             <>
                               <span>•</span>
                               <span className="text-xs text-primary animate-pulse">
