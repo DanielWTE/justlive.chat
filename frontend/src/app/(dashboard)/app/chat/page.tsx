@@ -234,7 +234,9 @@ export default function ChatPage() {
             roomId: room.id,
             websiteId: room.websiteId,
             messages: sortedMessages,
-            lastActivity: new Date(room.lastActivity || room.updatedAt || room.createdAt),
+            lastActivity: new Date(
+              room.lastActivity || room.updatedAt || room.createdAt
+            ),
             isActive: room.status === "active",
             visitorStatus: {
               isOnline: room.participants?.[0]?.isOnline || false,
@@ -528,34 +530,39 @@ export default function ChatPage() {
 
         // Wenn eine System-Nachricht vom Server mitgeschickt wurde, verwenden wir diese
         let updatedMessages = [...prev[data.roomId].messages];
-        
+
         if (data.systemMessage) {
           // Prüfe, ob diese Nachricht bereits existiert (basierend auf ID oder Inhalt)
           const messageExists = updatedMessages.some(
-            msg => (msg.id === data.systemMessage?.id) || 
-                  (msg.isSystem && msg.content === data.systemMessage?.content)
+            (msg) =>
+              msg.id === data.systemMessage?.id ||
+              (msg.isSystem && msg.content === data.systemMessage?.content)
           );
-          
+
           if (!messageExists) {
             // Konvertiere das Datum zurück zu einem Date-Objekt
             const systemMessage = {
               ...data.systemMessage,
-              createdAt: new Date(data.systemMessage.createdAt)
+              createdAt: new Date(data.systemMessage.createdAt),
             };
-            
+
             // Füge die System-Nachricht hinzu
             updatedMessages = [...updatedMessages, systemMessage];
-            console.log(`Added system message from server for room ${data.roomId}`);
+            console.log(
+              `Added system message from server for room ${data.roomId}`
+            );
           }
         } else {
           // Fallback: Erstelle eine lokale System-Nachricht, wenn keine vom Server kommt
-          const systemMessageId = `system-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-          
+          const systemMessageId = `system-${Date.now()}-${Math.random()
+            .toString(36)
+            .substring(2, 9)}`;
+
           // Prüfe, ob bereits eine ähnliche Nachricht existiert
           const messageExists = updatedMessages.some(
-            msg => msg.isSystem && msg.content === data.message
+            (msg) => msg.isSystem && msg.content === data.message
           );
-          
+
           if (!messageExists) {
             const systemMessage = {
               id: systemMessageId,
@@ -564,14 +571,14 @@ export default function ChatPage() {
               createdAt: new Date(),
               isVisitor: false,
               isRead: true,
-              isSystem: true
+              isSystem: true,
             };
-            
+
             updatedMessages = [...updatedMessages, systemMessage];
             console.log(`Added local system message for room ${data.roomId}`);
           }
         }
-        
+
         return {
           ...prev,
           [data.roomId]: {
@@ -910,10 +917,15 @@ export default function ChatPage() {
                         <p className="text-xs text-muted-foreground mb-1">
                           {getWebsiteDomain(session.websiteId)}
                         </p>
-                        {session.visitorInfo?.email && (
+                        {session.visitorInfo?.email ? (
                           <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
                             <Mail className="h-3 w-3" />
                             {session.visitorInfo.email}
+                          </p>
+                        ) : (
+                          <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                            <Mail className="h-3 w-3" />
+                            No E-Mail
                           </p>
                         )}
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">

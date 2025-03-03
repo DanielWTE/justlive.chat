@@ -110,10 +110,15 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
                 </span>
               </div>
             )}
-            {visitorEmail && (
+            {visitorEmail ? (
               <div className="flex items-center gap-1">
                 <Mail className="h-3 w-3" />
                 <span>{visitorEmail}</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1">
+                <Mail className="h-3 w-3" />
+                <span>No E-Mail</span>
               </div>
             )}
           </div>

@@ -99,6 +99,7 @@
       submitEmail: 'Submit',
       emailRequired: 'Email is required',
       invalidEmail: 'Please enter a valid email',
+      skipEmail: 'Skip email input',
       chatEnded: 'This chat session has ended.',
       startNewChat: 'Start a new chat',
       online: 'Online',
@@ -124,6 +125,7 @@
       submitEmail: 'Absenden',
       emailRequired: 'E-Mail ist erforderlich',
       invalidEmail: 'Bitte geben Sie eine gültige E-Mail-Adresse ein',
+      skipEmail: 'E-Mail-Eingabe überspringen',
       chatEnded: 'Diese Chat-Sitzung wurde beendet.',
       startNewChat: 'Neuen Chat starten',
       online: 'Online',
@@ -767,7 +769,6 @@
 
     .justlive-chat-welcome {
       text-align: center;
-      padding: 20px;
       background: #f9fafb;
       border-radius: 8px;
       margin: 16px auto;
@@ -1355,16 +1356,25 @@
       inputContainer.style.display = 'none';
       
       const formEl = document.createElement('div');
-      formEl.className = 'justlive-chat-user-form';
+      formEl.className = 'justlive-chat-welcome'; // Verwende die gleiche Klasse wie die Willkommensnachricht
       formEl.innerHTML = `
-        <div class="justlive-chat-form-title" style="font-size: 20px; font-weight: 600; margin-bottom: 10px;">${t.yourEmail}</div>
-        <div class="justlive-chat-form-explanation" style="font-size: 15px; margin-bottom: 20px; line-height: 1.4;">${t.emailExplanation}</div>
-        <div class="justlive-chat-form-field" style="margin-bottom: 20px;">
-          <label class="justlive-chat-form-label" for="visitor-email" style="font-size: 16px; margin-bottom: 8px; display: block;">${t.yourEmail}</label>
-          <input type="email" id="visitor-email" class="justlive-chat-form-input" placeholder="${t.yourEmail}" style="width: 100%; padding: 12px; font-size: 16px; border-radius: 6px; border: 1px solid #CBD5E0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-          <div class="justlive-chat-form-error" id="email-error" style="display: none; color: #E53E3E; margin-top: 6px; font-size: 14px;">${t.invalidEmail}</div>
+        <div class="justlive-chat-welcome-title" style="font-size: 22px; font-weight: 600; margin-bottom: 12px;">${t.yourEmail}</div>
+        <div class="justlive-chat-welcome-message" style="font-size: 14px; margin-bottom: 20px; line-height: 1.4;">
+          ${t.emailExplanation}
         </div>
-        <button class="justlive-chat-form-submit" style="background-color: ${primaryColor}; font-size: 16px; padding: 12px 24px; border-radius: 8px; font-weight: 500; width: 100%; transition: all 0.2s ease; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">${t.submitEmail}</button>
+        <div style="margin-bottom: 20px;">
+          <input type="email" id="visitor-email" class="justlive-chat-form-input" placeholder="${t.yourEmail}" 
+            style="width: 100%; padding: 12px; font-size: 16px; border-radius: 8px; border: 1px solid #CBD5E0; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05); background-color: white;">
+          <div class="justlive-chat-form-error" id="email-error" 
+            style="display: none; color: #E53E3E; margin-top: 6px; font-size: 14px;">${t.invalidEmail}</div>
+        </div>
+        <button class="justlive-chat-start-button" 
+          style="background-color: ${primaryColor}; font-size: 16px; padding: 12px 24px; border-radius: 8px; 
+          font-weight: 500; width: 100%; transition: all 0.2s ease; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">${t.submitEmail}</button>
+        <div class="justlive-chat-skip-email" style="text-align: center; margin-top: 12px;">
+          <a href="#" style="color: ${primaryColor}; font-size: 14px; text-decoration: underline; cursor: pointer;">${t.skipEmail}</a>
+        </div>
       `;
       messagesContainer.appendChild(formEl);
       
@@ -1372,7 +1382,7 @@
       messagesContainer.appendChild(typingContainer);
       
       // Add event listener for form submission
-      const submitButton = formEl.querySelector('.justlive-chat-form-submit');
+      const submitButton = formEl.querySelector('.justlive-chat-start-button');
       const emailInput = formEl.querySelector('#visitor-email');
       const emailError = formEl.querySelector('#email-error');
       
@@ -1397,6 +1407,19 @@
           // Initialize chat after user submits info
           initializeChat();
         }
+      });
+      
+      // Add event listener for skip link
+      const skipLink = formEl.querySelector('.justlive-chat-skip-email a');
+      skipLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log('User skipped email input');
+        visitorInfo.name = "Visitor";
+        visitorInfo.email = null;
+        hasSubmittedInfo = true;
+        
+        // Initialize chat after user skips email input
+        initializeChat();
       });
       
       // Focus on email input
@@ -1915,7 +1938,8 @@
       // Update welcome message based on admin status
       if (messagesContainer) {
         // Don't update welcome message if user info form is showing
-        if (messagesContainer.querySelector('.justlive-chat-user-form')) {
+        if (messagesContainer.querySelector('.justlive-chat-user-form') || 
+            (messagesContainer.querySelector('.justlive-chat-welcome') && messagesContainer.querySelector('#visitor-email'))) {
           console.log('User info form is showing, not updating welcome message');
           return;
         }
