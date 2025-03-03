@@ -541,16 +541,12 @@ export const handleChatEvents = (
       const isAdminOnline = !!(admins && admins.size > 0);
       
       // Send admin status to the requesting client
-      socket.emit('chat:participant:status', {
-        roomId: socket.data.roomId || '',
-        sessionId: 'admin', // Use a generic ID for admin
-        isOnline: isAdminOnline,
-        isTyping: false,
-        lastSeen: new Date(),
-        isAdmin: true
+      socket.emit('chat:admin:status', {
+        isAdminOnline,
+        websiteId
       });
       
-      console.log(`Sent admin status (${isAdminOnline ? 'online' : 'offline'}) to client ${socket.id}`);
+      console.log('Admin status requested:', { websiteId, isAdminOnline });
     } catch (error) {
       console.error('Admin status request error:', error);
     }

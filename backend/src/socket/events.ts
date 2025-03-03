@@ -31,6 +31,10 @@ export interface ServerToClientEvents {
     lastSeen: Date;
     isAdmin: boolean;
   }) => void;
+  'chat:admin:status': (data: {
+    isAdminOnline: boolean;
+    websiteId: string;
+  }) => void;
   'chat:message:read': (data: { messageId: string; roomId: string; readAt: Date }) => void;
   'chat:room:deleted': (data: { roomId: string }) => void;
   'chat:visitor:info': (data: { 
