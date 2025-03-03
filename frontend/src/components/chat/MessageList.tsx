@@ -25,9 +25,12 @@ export const MessageList: React.FC<MessageListProps> = ({
   isAdminTyping = false
 }) => {
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
+  const messagesStartRef = React.useRef<HTMLDivElement>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [shouldScrollToBottom, setShouldScrollToBottom] = React.useState(true);
   const prevMessagesLength = React.useRef(messages.length);
+  const [initialLoad, setInitialLoad] = React.useState(true);
+  const [showScrollButtons, setShowScrollButtons] = React.useState(false);
 
   // Function to check if user is near bottom
   const isNearBottom = () => {
@@ -40,13 +43,24 @@ export const MessageList: React.FC<MessageListProps> = ({
 
   // Handle scroll events
   const handleScroll = () => {
-    setShouldScrollToBottom(isNearBottom());
+    const container = containerRef.current;
+    if (container) {
+      setShouldScrollToBottom(isNearBottom());
+      setShowScrollButtons(container.scrollTop > 100);
+    }
   };
 
   // Scroll to bottom if needed
   const scrollToBottomIfNeeded = () => {
-    if (shouldScrollToBottom) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (shouldScrollToBottom && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  // Scroll to top function
+  const scrollToTop = () => {
+    if (messagesStartRef.current) {
+      messagesStartRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -71,10 +85,23 @@ export const MessageList: React.FC<MessageListProps> = ({
     }
   }, [isTyping]);
 
-  // Initial scroll to bottom
+  // Initial load behavior
   React.useEffect(() => {
-    scrollToBottomIfNeeded();
-  }, []);
+    if (initialLoad && messages.length > 0) {
+      // On initial load, position the scroll to show the first few messages
+      if (containerRef.current) {
+        // Set scroll to top with a slight delay to ensure DOM is fully rendered
+        setTimeout(() => {
+          if (containerRef.current) {
+            containerRef.current.scrollTop = 0;
+          }
+        }, 100);
+      }
+      setInitialLoad(false);
+    } else if (messages.length > 0 && shouldScrollToBottom) {
+      scrollToBottomIfNeeded();
+    }
+  }, [messages.length]);
 
   const formatTime = (date: Date) => {
     return new Date(date).toLocaleTimeString([], { 
@@ -86,10 +113,37 @@ export const MessageList: React.FC<MessageListProps> = ({
   return (
     <div 
       ref={containerRef}
-      className="h-full overflow-y-auto p-4 space-y-3"
+      className="h-full overflow-y-auto p-4 space-y-3 relative"
       onScroll={handleScroll}
-      style={{ overflowY: 'auto', height: '100%' }}
+      style={{ height: '100%' }}
     >
+      <div ref={messagesStartRef} />
+      
+      {showScrollButtons && (
+        <div className="sticky top-2 left-0 right-0 flex justify-center z-10 gap-2 pointer-events-none">
+          <div className="pointer-events-auto flex gap-2">
+            <button 
+              onClick={scrollToTop}
+              className="bg-primary text-primary-foreground rounded-full p-2 shadow-md hover:bg-primary/90 transition-all"
+              aria-label="Scroll to top"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m18 15-6-6-6 6"/>
+              </svg>
+            </button>
+            <button 
+              onClick={scrollToBottomIfNeeded}
+              className="bg-primary text-primary-foreground rounded-full p-2 shadow-md hover:bg-primary/90 transition-all"
+              aria-label="Scroll to bottom"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m6 9 6 6 6-6"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+      
       {messages.length === 0 && (
         <div className="flex items-center justify-center">
           <p className="text-muted-foreground text-sm">No messages yet</p>

@@ -79,7 +79,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   }, [messages, socket, isConnected, roomId]);
 
   return (
-    <Card className="flex flex-col h-full overflow-hidden border rounded-lg shadow-sm py-0">
+    <Card className="flex flex-col h-full overflow-hidden border rounded-lg shadow-sm py-0 gap-0">
       <ChatHeader 
         onClose={onClose} 
         isConnected={isConnected} 
@@ -91,20 +91,22 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         messages={messages}
       />
       <CardContent className="flex-1 p-0 overflow-hidden">
-        <div className="overflow-hidden">
+        <div className="h-full overflow-auto">
           <MessageList 
             messages={messages} 
             isTyping={visitorStatus?.isTyping}
             isAdminTyping={isTyping}
           />
         </div>
-        {!isActive && (
-          <div className="bg-muted/30 p-3 text-center text-sm text-muted-foreground border-t">
-            This chat has ended. You cannot send new messages.
-          </div>
-        )}
       </CardContent>
-      <CardFooter className="p-0 border-t">
+      
+      {!isActive && (
+        <div className="bg-muted/30 p-3 text-center text-sm text-muted-foreground border-t sticky bottom-[48px] z-[9]">
+          This chat has ended. You cannot send new messages.
+        </div>
+      )}
+      
+      <CardFooter className="p-0 border-t sticky bottom-0 bg-background z-10">
         <MessageInput 
           onSendMessage={onSendMessage} 
           disabled={!isConnected || !isActive}
