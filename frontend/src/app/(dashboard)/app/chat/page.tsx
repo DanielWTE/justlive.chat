@@ -765,7 +765,7 @@ export default function ChatPage() {
                       activeRoomId === session.roomId ? "bg-accent" : ""
                     } ${
                       !session.isActive
-                        ? "opacity-85 border-l-4 border-l-yellow-500"
+                        ? "opacity-85 border-l-4 border-l-red-500"
                         : ""
                     }`}
                     onClick={() => setActiveRoomId(session.roomId)}
