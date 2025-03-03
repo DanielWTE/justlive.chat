@@ -1,14 +1,30 @@
-'use client';
+"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Globe, MessageSquare, Menu } from "lucide-react";
+import {
+  LayoutDashboard,
+  Globe,
+  MessageSquare,
+  Menu,
+  Settings,
+  LogOut,
+  HelpCircle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { useState, useEffect } from "react";
+import { useSession } from "@/hooks/useSession";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 
-const sidebarNavItems = [
+const mainNavItems = [
   {
     title: "Overview",
     href: "/app",
@@ -26,6 +42,14 @@ const sidebarNavItems = [
   },
 ];
 
+const accountNavItems = [
+  {
+    title: "Settings",
+    href: "/app/settings",
+    icon: Settings,
+  },
+];
+
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
@@ -33,6 +57,7 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const { user } = useSession();
 
   // Close mobile menu when route changes
   useEffect(() => {
@@ -40,28 +65,91 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   }, [pathname]);
 
   const SidebarContent = () => (
-    <div className="space-y-4 py-4">
+    <div className="flex flex-col h-full py-4">
       <div className="px-3 py-2">
-        <h2 className="mb-2 px-4 text-lg font-semibold">
-          JustLive.Chat
-        </h2>
-        <div className="space-y-1">
-          {sidebarNavItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
-                  pathname === item.href ? "bg-accent text-accent-foreground" : "text-muted-foreground"
-                )}
-              >
-                <Icon className="mr-2 h-4 w-4" />
-                <span>{item.title}</span>
-              </Link>
-            );
-          })}
+        <div className="flex items-center px-4 mb-6">
+          <h2 className="text-xl font-bold">JustLive.Chat</h2>
+        </div>
+
+        <div className="mb-6">
+          <h3 className="px-4 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Main
+          </h3>
+          <div className="space-y-1">
+            {mainNavItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors",
+                    pathname === item.href
+                      ? "bg-accent text-accent-foreground"
+                      : "text-muted-foreground"
+                  )}
+                >
+                  <Icon className="mr-2 h-4 w-4" />
+                  <span>{item.title}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <h3 className="px-4 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Account
+          </h3>
+          <div className="space-y-1">
+            {accountNavItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors",
+                    pathname === item.href
+                      ? "bg-accent text-accent-foreground"
+                      : "text-muted-foreground"
+                  )}
+                >
+                  <Icon className="mr-2 h-4 w-4" />
+                  <span>{item.title}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-auto px-3 py-2">
+        <Separator className="my-4" />
+        <div className="flex items-center justify-between px-4 py-2">
+          <div className="flex items-center">
+            <Avatar className="h-8 w-8 mr-2">
+              <AvatarImage src="" alt={user?.email || ""} />
+              <AvatarFallback>
+                {user?.email?.[0]?.toUpperCase() || "U"}
+              </AvatarFallback>
+            </Avatar>
+            <div className="space-y-1">
+              <p className="text-sm font-medium leading-none">{user?.email}</p>
+            </div>
+          </div>
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <LogOut className="h-4 w-4" />
+          </Button>
+        </div>
+        <div className="mt-4 px-4">
+          <Link
+            href="/help"
+            className="flex items-center text-sm text-muted-foreground hover:text-foreground"
+          >
+            <HelpCircle className="mr-2 h-4 w-4" />
+            <span>Help & Support</span>
+          </Link>
         </div>
       </div>
     </div>
@@ -81,6 +169,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="w-72 p-0">
+          <SheetTitle />
           <SidebarContent />
         </SheetContent>
       </Sheet>
@@ -91,9 +180,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto">
-        {children}
-      </main>
+      <main className="flex-1 overflow-y-auto mt-8 md:mt-0">{children}</main>
     </div>
   );
-} 
+}
