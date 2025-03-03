@@ -1042,6 +1042,14 @@
     }, 10000);
   };
 
+  // Function to hide error message
+  const hideError = () => {
+    const errorDisplay = document.getElementById('justlive-chat-error');
+    if (errorDisplay) {
+      errorDisplay.remove();
+    }
+  };
+
   errorDisplay.querySelector('.justlive-chat-error-close').addEventListener('click', () => {
     errorDisplay.classList.remove('show');
   });
@@ -1450,40 +1458,31 @@
 
     // Event handlers
     button.addEventListener('click', () => {
+      // If disconnected, try to reconnect but still allow opening the chat window
       if (!isConnected) {
-        // Versuche, die Verbindung wiederherzustellen, wenn der Chat beendet wurde
-        if (isChatEnded) {
-          socket.connect();
-          
-          // Warte kurz, bis die Verbindung hergestellt ist
-          setTimeout(() => {
-            if (socket.connected) {
-              isConnected = true;
-              chatWindow.classList.add('open');
-              // Starte einen neuen Chat
-              restartChat();
-            } else {
-              showError(t.connectionError, t.error);
-            }
-          }, 1000);
-          return;
-        } else {
+        // Try to reconnect
+        socket.connect();
+        
+        // Show error message but still open the chat window
+        if (!isChatEnded) {
           showError(t.connectionError, t.error);
-          return;
         }
       }
       
-      // Toggle chat window open/closed state
+      // Toggle chat window open/closed state regardless of connection state
       if (chatWindow.classList.contains('open')) {
         chatWindow.classList.remove('open');
       } else {
         chatWindow.classList.add('open');
         
-        // Request admin status when chat window opens
-        requestAdminStatus();
+        // Request admin status when chat window opens (if connected)
+        if (isConnected) {
+          requestAdminStatus();
+        }
         
-        // Show welcome message if no chat is active
-        if (!currentRoomId && !isChatEnded) {
+        // If chat is ended, we just show the current content (chat ended message)
+        // Otherwise, show welcome message if no chat is active
+        if (!isChatEnded && !currentRoomId) {
           // Always show welcome message first, unless user has already submitted info
           if (!hasSubmittedInfo) {
             // Disable input and send button until user starts chat
@@ -1512,7 +1511,7 @@
           }
         }
         
-        // Focus on input if available
+        // Focus on input if available and not disabled
         if (input && !input.disabled) {
           input.focus();
         }
@@ -1660,9 +1659,8 @@
       console.log('Disconnected from chat server');
       isConnected = false;
       
-      // Deaktiviere den Chat-Button
-      button.style.opacity = '0.7';
-      button.style.pointerEvents = 'none';
+      // Don't disable the chat button anymore
+      // Keep button clickable even when disconnected
       
       if (chatWindow.classList.contains('open') && !isChatEnded) {
         showError(t.connectionError, t.error);
@@ -1823,14 +1821,6 @@
       }
     });
     
-    // Disable button until connected
-    if (!isConnected) {
-      button.style.opacity = '0.5';
-      button.style.pointerEvents = 'none';
-      
-      // Re-enable once connected is handled by the main connect event handler above
-    }
-
     // Track page visibility and unload
     window.addEventListener('beforeunload', () => {
       if (currentRoomId && !isChatEnded && !visitorLeftReported) {
