@@ -382,6 +382,57 @@ export const handleChatEvents = (
     }
   };
 
+  // Handle visitor leaving the page
+  const handleVisitorLeave = async (data: { roomId: string }) => {
+    try {
+      const { roomId } = data;
+      
+      if (!roomId) return;
+      
+      // Get the room
+      const room = await prisma.chatRoom.findUnique({
+        where: { id: roomId },
+        include: { messages: true }
+      });
+      
+      if (!room) return;
+      
+      // Add system message about visitor leaving
+      await prisma.chatMessage.create({
+        data: {
+          content: 'Visitor left the chat (closed the page)',
+          isVisitor: false,
+          roomId: roomId,
+        }
+      });
+      
+      // Update room status to ended
+      await updateChatRoomStatus(roomId, 'ended');
+      
+      // Update participant status
+      await prisma.chatParticipant.updateMany({
+        where: { roomId },
+        data: {
+          isOnline: false,
+          lastSeen: new Date()
+        }
+      });
+      
+      // Notify admin about visitor leaving and session end
+      io.to(`admin:${room.websiteId}`).emit('chat:visitor:left', { 
+        roomId, 
+        message: 'Visitor left the chat (closed the page)' 
+      });
+      
+      // Notify all clients in the room about session end
+      io.to(roomId).emit('chat:session:end', { roomId });
+      
+      console.log(`Visitor left chat room: ${roomId}. Chat session ended.`);
+    } catch (error) {
+      console.error('Error handling visitor leave:', error);
+    }
+  };
+
   // Register event handlers
   if (socket.data.isAdmin) {
     socket.on('chat:admin:subscribe', handleAdminSubscribe);
@@ -390,6 +441,7 @@ export const handleChatEvents = (
     socket.on('chat:message:read', handleMessageRead);
   } else {
     socket.on('chat:join', handleJoin);
+    socket.on('chat:visitor:leave', handleVisitorLeave);
   }
 
   socket.on('chat:message', handleMessage);

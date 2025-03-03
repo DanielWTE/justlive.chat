@@ -80,7 +80,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         messages={messages}
       />
       <CardContent className="flex-1 p-0 overflow-hidden">
-        <div className="h-full overflow-hidden">
+        <div className="overflow-hidden">
           <MessageList 
             messages={messages} 
             isTyping={visitorStatus?.isTyping}

@@ -15,18 +15,20 @@ import {
   handleDeleteWebsite 
 } from "./api/websites";
 import { handleEmbedGenerate } from "./api/embed";
-import { handleGetMessages } from "./api/chat";
+import { handleGetMessages, handleVisitorLeft } from "./api/chat";
 import { domainWhitelist } from "./middleware/domain";
 import { domainRateLimit } from "./middleware/rateLimit";
 import { authMiddleware } from "./middleware/auth";
 import { socketAuth } from "./socket/auth";
 import { handleChatEvents } from "./socket/chat";
 import { ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData } from "./socket/events";
+import { PrismaClient } from "@prisma/client";
 
 dotenv.config();
 
 const app = express();
 const httpServer = createServer(app);
+const prisma = new PrismaClient();
 
 // Enhanced security configuration for Socket.IO
 const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(httpServer, {
@@ -120,6 +122,9 @@ app.get("/chat/messages/:roomId", authMiddleware, handleGetMessages);
 
 // Visitor routes - require domain whitelist and rate limit
 app.use("/chat/visitor", domainWhitelist, domainRateLimit);
+
+// API endpoint for visitor leaving (sendBeacon fallback)
+app.post("/chat/visitor-left", express.json(), handleVisitorLeft(io));
 
 // Socket.IO setup with enhanced monitoring
 io.use(socketAuth);

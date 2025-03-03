@@ -29,21 +29,30 @@
       background: #0070f3;
       box-shadow: 0 4px 14px 0 rgba(0, 118, 255, 0.39);
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
     .justlive-chat-button:hover {
-      transform: translateY(-1px);
+      transform: translateY(-2px) scale(1.05);
       box-shadow: 0 6px 20px rgba(0, 118, 255, 0.23);
+    }
+    
+    .justlive-chat-button:active {
+      transform: translateY(0) scale(0.95);
     }
 
     .justlive-chat-icon {
       width: 30px;
       height: 30px;
       fill: white;
+      transition: transform 0.3s ease;
+    }
+    
+    .justlive-chat-button:hover .justlive-chat-icon {
+      transform: rotate(10deg);
     }
 
     .justlive-chat-window {
@@ -58,8 +67,9 @@
       display: none;
       flex-direction: column;
       overflow: hidden;
-      animation: slideIn 0.3s ease;
+      animation: slideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       border: 1px solid #eaeaea;
+      transform-origin: bottom right;
     }
 
     .justlive-chat-window.open {
@@ -164,17 +174,23 @@
       line-height: 1.5;
       position: relative;
       word-wrap: break-word;
-      animation: messageIn 0.3s ease;
+      animation: messageIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+    
+    .justlive-chat-message:hover {
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     @keyframes messageIn {
       from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(10px) scale(0.95);
       }
       to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
       }
     }
 
@@ -192,104 +208,39 @@
     }
 
     .justlive-chat-message.system {
-      background: #fef3c7;
-      color: #92400e;
-      margin: 16px auto;
+      background: #f3f4f6;
+      color: #6b7280;
+      margin: 12px auto;
       text-align: center;
-      max-width: 90%;
-      font-size: 13px;
+      max-width: 85%;
+      font-size: 12px;
       border-radius: 8px;
+      animation: fadeIn 0.4s ease;
+      padding: 8px 12px;
+      border: 1px solid #e5e7eb;
+      box-shadow: none;
+      font-style: italic;
+      opacity: 0.9;
     }
-
-    .justlive-chat-error {
-      position: fixed;
-      bottom: 90px;
-      right: 20px;
-      width: 350px;
-      background: #fee2e2;
-      border: 1px solid #ef4444;
-      color: #991b1b;
-      padding: 16px;
-      border-radius: 12px;
-      font-size: 14px;
-      line-height: 1.5;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      display: none;
-      animation: slideIn 0.3s ease;
-      z-index: 10000;
-    }
-
-    .justlive-chat-error.show {
+    
+    .justlive-chat-message.system::before {
+      content: '';
       display: block;
+      height: 1px;
+      background: #e5e7eb;
+      width: 40px;
+      margin: 0 auto 6px;
+      opacity: 0.7;
     }
-
-    .justlive-chat-error-close {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      cursor: pointer;
-      opacity: 0.6;
-      font-size: 18px;
-      padding: 4px;
-      width: 24px;
-      height: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-    }
-
-    .justlive-chat-error-close:hover {
-      opacity: 1;
-      background: rgba(0, 0, 0, 0.05);
-    }
-
-    .justlive-chat-restart {
-      background: #0070f3;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 8px 16px;
-      font-size: 14px;
-      cursor: pointer;
-      margin-top: 8px;
-      transition: all 0.2s ease;
-      font-weight: 500;
-    }
-
-    .justlive-chat-restart:hover {
-      background: #0061d5;
-      transform: translateY(-1px);
-    }
-
-    .justlive-chat-ended {
-      text-align: center;
-      padding: 20px;
-      background: #f9fafb;
-      border-radius: 8px;
-      margin: 16px auto;
-      max-width: 90%;
-    }
-
-    .justlive-chat-ended-title {
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: #4b5563;
-    }
-
-    .justlive-chat-ended-message {
-      color: #6b7280;
-      margin-bottom: 16px;
-      font-size: 14px;
-    }
-
-    .justlive-chat-typing {
-      font-size: 13px;
-      color: #6b7280;
-      margin-top: -8px;
-      margin-bottom: 12px;
-      margin-left: 4px;
-      animation: fadeIn 0.3s ease;
+    
+    .justlive-chat-message.system::after {
+      content: '';
+      display: block;
+      height: 1px;
+      background: #e5e7eb;
+      width: 40px;
+      margin: 6px auto 0;
+      opacity: 0.7;
     }
 
     @keyframes fadeIn {
@@ -300,12 +251,18 @@
     @keyframes slideIn {
       from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(20px) scale(0.95);
       }
       to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
       }
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+      20%, 40%, 60%, 80% { transform: translateX(5px); }
     }
 
     .justlive-chat-timestamp {
@@ -313,6 +270,188 @@
       color: #9ca3af;
       text-align: center;
       margin: 8px 0;
+    }
+
+    .justlive-chat-welcome {
+      text-align: center;
+      padding: 20px;
+      background: #f9fafb;
+      border-radius: 8px;
+      margin: 16px auto;
+      max-width: 90%;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .justlive-chat-welcome-title {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #111827;
+    }
+
+    .justlive-chat-welcome-message {
+      color: #6b7280;
+      margin-bottom: 16px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .justlive-chat-start-button {
+      background: #0070f3;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 500;
+      display: inline-block;
+    }
+
+    .justlive-chat-start-button:hover {
+      background: #0061d5;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .justlive-chat-ended {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 16px;
+      margin: 20px auto;
+      max-width: 90%;
+      text-align: center;
+      animation: fadeIn 0.5s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    .justlive-chat-ended-title {
+      font-weight: 600;
+      font-size: 16px;
+      margin-bottom: 8px;
+      color: #4b5563;
+    }
+    
+    .justlive-chat-ended-message {
+      color: #6b7280;
+      font-size: 14px;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+    
+    .justlive-chat-restart {
+      background: #0070f3;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 500;
+    }
+    
+    .justlive-chat-restart:hover {
+      background: #0061d5;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .justlive-chat-error {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: white;
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      max-width: 320px;
+      z-index: 10000;
+      transform: translateY(150%);
+      transition: transform 0.3s ease;
+      border-left: 4px solid #ef4444;
+    }
+    
+    .justlive-chat-error.show {
+      transform: translateY(0);
+    }
+    
+    .justlive-chat-error-close {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      color: #9ca3af;
+      transition: color 0.2s ease;
+    }
+    
+    .justlive-chat-error-close:hover {
+      color: #4b5563;
+    }
+    
+    .justlive-chat-error-title {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #ef4444;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .justlive-chat-error-content {
+      color: #4b5563;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+      20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+
+    .justlive-chat-typing {
+      background: #f3f4f6;
+      color: #6b7280;
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      margin: 8px 0 8px 10px;
+      max-width: 120px;
+      position: relative;
+      animation: fadeIn 0.3s ease;
+      display: flex;
+      align-items: center;
+      font-style: italic;
+    }
+    
+    .justlive-chat-typing::after {
+      content: '...';
+      display: inline-block;
+      width: 12px;
+      text-align: left;
+      animation: ellipsis 1.5s infinite;
+      margin-left: 4px;
+    }
+    
+    @keyframes ellipsis {
+      0% { content: '.'; }
+      33% { content: '..'; }
+      66% { content: '...'; }
+      100% { content: '.'; }
     }
   `;
   document.head.appendChild(styles);
@@ -322,20 +461,30 @@
   errorDisplay.className = 'justlive-chat-error';
   errorDisplay.innerHTML = `
     <div class="justlive-chat-error-close">✕</div>
-    <div class="justlive-chat-error-message"></div>
+    <div class="justlive-chat-error-title"><span class="justlive-chat-error-icon">⚠️</span> <span class="justlive-chat-error-title-text">Error</span></div>
+    <div class="justlive-chat-error-content"></div>
   `;
   document.body.appendChild(errorDisplay);
 
   // Error display functions
-  const showError = (message) => {
-    const errorMessage = errorDisplay.querySelector('.justlive-chat-error-message');
+  const showError = (message, title = "Error") => {
+    const errorTitle = errorDisplay.querySelector('.justlive-chat-error-title-text');
+    const errorMessage = errorDisplay.querySelector('.justlive-chat-error-content');
+    
+    errorTitle.textContent = title;
     errorMessage.textContent = message;
     errorDisplay.classList.add('show');
     
-    // Auto-hide after 10 seconds
+    // Add shake animation
+    errorDisplay.style.animation = 'none';
+    setTimeout(() => {
+      errorDisplay.style.animation = 'slideIn 0.3s ease';
+    }, 10);
+    
+    // Auto-hide after 8 seconds
     setTimeout(() => {
       errorDisplay.classList.remove('show');
-    }, 10000);
+    }, 8000);
   };
 
   errorDisplay.querySelector('.justlive-chat-error-close').addEventListener('click', () => {
@@ -435,12 +584,18 @@
       // Clear previous chat
       messagesContainer.innerHTML = '';
       isChatEnded = false;
+      currentRoomId = null; // Reset room ID
       input.disabled = false;
       sendButton.disabled = false;
       
       // Start new chat session
       socket.emit('chat:join', { websiteId });
-      addSystemMessage('Starting a new chat session...');
+      addSystemMessage('Starting new chat session');
+      
+      // Add a small delay to ensure the UI updates
+      setTimeout(() => {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }, 100);
     };
 
     const updateTypingIndicator = () => {
@@ -454,22 +609,54 @@
       if (agentTyping) {
         const typingEl = document.createElement('div');
         typingEl.className = 'justlive-chat-typing';
-        typingEl.textContent = 'Agent is typing...';
+        typingEl.textContent = 'Agent is typing';
         messagesContainer.appendChild(typingEl);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+    };
+
+    // Show welcome message with start button
+    const showWelcomeMessage = () => {
+      messagesContainer.innerHTML = '';
+      
+      const welcomeEl = document.createElement('div');
+      welcomeEl.className = 'justlive-chat-welcome';
+      welcomeEl.innerHTML = `
+        <div class="justlive-chat-welcome-title">Welcome to our chat!</div>
+        <div class="justlive-chat-welcome-message">
+          Need help? Our team is here to assist you. Start a conversation by clicking the button below or typing a message.
+        </div>
+        <button class="justlive-chat-start-button">Start Chat</button>
+      `;
+      messagesContainer.appendChild(welcomeEl);
+      
+      // Add event listener for start button
+      welcomeEl.querySelector('.justlive-chat-start-button').addEventListener('click', () => {
+        initializeChat();
+      });
+    };
+    
+    // Initialize chat
+    const initializeChat = () => {
+      if (!currentRoomId && !isChatEnded) {
+        // Clear any welcome message
+        messagesContainer.innerHTML = '';
+        socket.emit('chat:join', { websiteId });
+        addSystemMessage('Connecting to support');
       }
     };
 
     // Event handlers
     button.addEventListener('click', () => {
       if (!isConnected) {
-        showError('Chat is currently unavailable. Please try again later.');
+        showError('Chat is currently unavailable. Please try again later.', 'Connection Error');
         return;
       }
       chatWindow.classList.add('open');
+      
+      // Show welcome message if no chat is active
       if (!currentRoomId && !isChatEnded) {
-        socket.emit('chat:join', { websiteId });
-        addSystemMessage('Connecting to support...');
+        showWelcomeMessage();
       }
     });
 
@@ -480,8 +667,26 @@
 
     const sendMessage = () => {
       const content = input.value.trim();
-      if (content && currentRoomId && !isChatEnded) {
+      
+      if (!content) return;
+      
+      if (!currentRoomId && !isChatEnded) {
+        // Initialize chat if this is the first message
+        initializeChat();
+        
+        // We'll queue this message to be sent once the room is created
+        setTimeout(() => {
+          if (currentRoomId) {
+            socket.emit('chat:message', { content, roomId: currentRoomId });
+            // Don't create message element here - the socket event will handle it
+          }
+        }, 1000); // Give the server a second to create the room
+        
+        input.value = '';
+      } else if (currentRoomId && !isChatEnded) {
         socket.emit('chat:message', { content, roomId: currentRoomId });
+        
+        // Don't create message element here - the socket event will handle it
         input.value = '';
         
         // Add timestamp every 5 messages or if it's been a while
@@ -489,7 +694,7 @@
           addTimestamp();
         }
       } else if (isChatEnded) {
-        showError('This chat has ended. Please start a new chat to continue.');
+        showError('This chat has ended. Please start a new chat to continue.', 'Chat Ended');
       }
     };
 
@@ -509,19 +714,23 @@
     socket.on('chat:joined', (data) => {
       console.log('Joined chat room:', data.roomId);
       currentRoomId = data.roomId;
-      addSystemMessage('Connected to support. You can start chatting now.');
+      addSystemMessage('Connected to support');
       addTimestamp();
+      
+      // Enable input if it was disabled
+      input.disabled = false;
+      sendButton.disabled = false;
     });
 
     socket.on('connect_error', (error) => {
       console.error('Connection error:', error);
       isConnected = false;
       if (error.message.includes('Authentication failed: Domain mismatch')) {
-        showError('This chat widget is not authorized for this domain. Please check your configuration.');
+        showError('This chat widget is not authorized for this domain. Please check your configuration.', 'Authentication Error');
       } else if (error.message.includes('Too many connections')) {
-        showError('Too many chat connections from this domain. Please try again later.');
+        showError('Too many chat connections from this domain. Please try again later.', 'Connection Limit');
       } else {
-        showError('Unable to connect to chat server. Please try again later.');
+        showError('Unable to connect to chat server. Please try again later.', 'Connection Failed');
       }
     });
 
@@ -529,7 +738,7 @@
       console.log('Disconnected from chat server');
       isConnected = false;
       if (chatWindow.classList.contains('open')) {
-        showError('Connection lost. Trying to reconnect...');
+        showError('Connection to chat server lost. We\'re trying to reconnect you...', 'Connection Lost');
       }
     });
 
@@ -551,7 +760,7 @@
 
     socket.on('chat:error', (error) => {
       console.error('Chat error:', error.message);
-      showError(error.message);
+      showError(error.message, 'Chat Error');
     });
 
     socket.on('chat:session:end', () => {
@@ -566,6 +775,34 @@
       }
     });
 
+    // Add handler for chat room deleted
+    socket.on('chat:room:deleted', () => {
+      console.log('Chat room deleted by agent');
+      
+      // Clear the chat
+      messagesContainer.innerHTML = '';
+      
+      // Reset state
+      currentRoomId = null;
+      isChatEnded = true;
+      input.disabled = true;
+      sendButton.disabled = true;
+      
+      // Show deleted message
+      const deletedEl = document.createElement('div');
+      deletedEl.className = 'justlive-chat-ended';
+      deletedEl.innerHTML = `
+        <div class="justlive-chat-ended-title">Chat session deleted</div>
+        <div class="justlive-chat-ended-message">This chat session has been deleted by the support agent.</div>
+        <button class="justlive-chat-restart">Start new chat</button>
+      `;
+      messagesContainer.appendChild(deletedEl);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      
+      // Add event listener for restart button
+      deletedEl.querySelector('.justlive-chat-restart').addEventListener('click', restartChat);
+    });
+
     // Handle typing events
     let typingTimeout;
     input.addEventListener('input', () => {
@@ -575,6 +812,50 @@
         typingTimeout = setTimeout(() => {
           socket.emit('chat:typing', { roomId: currentRoomId, isTyping: false });
         }, 1000);
+      }
+    });
+    
+    // Focus input when chat window opens
+    chatWindow.addEventListener('transitionend', () => {
+      if (chatWindow.classList.contains('open')) {
+        input.focus();
+      }
+    });
+    
+    // Add click event to focus input when clicking anywhere in the messages container
+    messagesContainer.addEventListener('click', () => {
+      if (!input.disabled) {
+        input.focus();
+      }
+    });
+    
+    // Initialize the chat window state
+    if (isConnected) {
+      // If we're already connected, make sure the button is enabled
+      button.style.opacity = '1';
+      button.style.pointerEvents = 'auto';
+    } else {
+      // If not connected, disable the button until connection is established
+      button.style.opacity = '0.7';
+      button.style.pointerEvents = 'none';
+      
+      // Re-enable once connected
+      socket.on('connect', () => {
+        button.style.opacity = '1';
+        button.style.pointerEvents = 'auto';
+      });
+    }
+
+    // Track page visibility and unload
+    window.addEventListener('beforeunload', () => {
+      if (currentRoomId && !isChatEnded) {
+        // Inform server that user is leaving
+        socket.emit('chat:visitor:leave', { roomId: currentRoomId });
+        // Use sendBeacon for more reliable delivery during page unload
+        if (navigator.sendBeacon) {
+          const data = JSON.stringify({ roomId: currentRoomId });
+          navigator.sendBeacon(`${BACKEND_URL}/chat/visitor-left`, data);
+        }
       }
     });
   };

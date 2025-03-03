@@ -23,6 +23,7 @@ export interface ServerToClientEvents {
   }) => void;
   'chat:message:read': (data: { messageId: string; roomId: string; readAt: Date }) => void;
   'chat:room:deleted': (data: { roomId: string }) => void;
+  'chat:visitor:left': (data: { roomId: string; message: string }) => void;
 }
 
 export interface ClientToServerEvents {
@@ -34,6 +35,7 @@ export interface ClientToServerEvents {
   'chat:session:end': (data: { roomId: string }) => void;
   'chat:message:read': (data: { messageId: string; roomId: string }) => void;
   'chat:room:delete': (data: { roomId: string }) => void;
+  'chat:visitor:leave': (data: { roomId: string }) => void;
 }
 
 export interface InterServerEvents {
