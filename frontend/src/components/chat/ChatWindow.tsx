@@ -25,6 +25,7 @@ interface ChatWindowProps {
   isConnected: boolean;
   messages: Message[];
   websiteDomain: string;
+  websiteName?: string;
   isActive?: boolean;
   visitorStatus?: {
     isOnline: boolean;
@@ -42,6 +43,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   isConnected,
   messages,
   websiteDomain,
+  websiteName,
   isActive = true,
   visitorStatus,
 }) => {
@@ -67,20 +69,23 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   }, [messages, socket, isConnected, roomId]);
 
   return (
-    <Card className="flex flex-col h-full overflow-hidden border rounded-lg shadow-sm">
+    <Card className="flex flex-col h-full overflow-hidden border rounded-lg shadow-sm py-0">
       <ChatHeader 
         onClose={onClose} 
         isConnected={isConnected} 
         websiteDomain={websiteDomain}
+        websiteName={websiteName}
         visitorStatus={visitorStatus}
         isActive={isActive}
         messages={messages}
       />
       <CardContent className="flex-1 p-0 overflow-hidden">
-        <MessageList 
-          messages={messages} 
-          isTyping={visitorStatus?.isTyping}
-        />
+        <div className="h-full overflow-hidden">
+          <MessageList 
+            messages={messages} 
+            isTyping={visitorStatus?.isTyping}
+          />
+        </div>
         {!isActive && (
           <div className="bg-muted/30 p-3 text-center text-sm text-muted-foreground border-t">
             This chat has ended. You cannot send new messages.

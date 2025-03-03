@@ -676,6 +676,9 @@ export default function ChatPage() {
               websiteDomain={getWebsiteDomain(
                 chatSessions[activeRoomId].websiteId
               )}
+              websiteName={getWebsiteName(
+                chatSessions[activeRoomId].websiteId
+              )}
               visitorStatus={chatSessions[activeRoomId].visitorStatus}
               isActive={chatSessions[activeRoomId].isActive}
             />

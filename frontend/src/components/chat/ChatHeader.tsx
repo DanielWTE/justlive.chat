@@ -18,6 +18,7 @@ interface ChatHeaderProps {
   onClose: () => void;
   isConnected: boolean;
   websiteDomain: string;
+  websiteName?: string;
   isActive?: boolean;
   messages?: Message[];
   visitorStatus?: {
@@ -31,6 +32,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
   onClose, 
   isConnected,
   websiteDomain,
+  websiteName,
   isActive = true,
   messages = [],
   visitorStatus
@@ -63,7 +65,12 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
     <CardHeader className="px-4 py-3 border-b flex flex-row items-center justify-between space-y-0">
       <div className="flex items-center space-x-3">
         <div>
-          <h2 className="text-lg font-semibold">{websiteDomain}</h2>
+          <h2 className="text-lg font-semibold">
+            {websiteName || websiteDomain}
+          </h2>
+          {websiteName && (
+            <p className="text-xs text-muted-foreground -mt-0.5 mb-1">{websiteDomain}</p>
+          )}
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             {!isActive && (
               <Badge variant="destructive" className="h-5 px-1.5 text-white">Chat Ended</Badge>
