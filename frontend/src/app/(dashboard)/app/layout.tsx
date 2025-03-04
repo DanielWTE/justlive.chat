@@ -182,8 +182,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               </AvatarFallback>
             </Avatar>
             <div className="space-y-1">
-              <p className="text-sm font-medium leading-none">{user?.name}</p>
-              <p className="text-xs text-muted-foreground">{user?.email}</p>
+              <p className="text-sm font-medium leading-none max-w-[150px] truncate">{user?.name}</p>
+              <p className="text-xs text-muted-foreground max-w-[150px] truncate">{user?.email}</p>
             </div>
           </div>
           <Button
