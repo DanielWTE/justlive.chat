@@ -178,7 +178,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <Avatar className="h-8 w-8 mr-2">
               <AvatarImage src="" alt={user?.email || ""} />
               <AvatarFallback>
-                {user?.email?.[0]?.toUpperCase() || "U"}
+                {user?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "U"}
               </AvatarFallback>
             </Avatar>
             <div className="space-y-1">

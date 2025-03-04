@@ -11,6 +11,8 @@ import {
   ArrowRight,
   Palette,
 } from "lucide-react";
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
 import { useSession } from "@/hooks/useSession";
 
 export default function Home() {
@@ -19,30 +21,7 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link href="/" className="flex items-center space-x-2">
-            <MessageSquare className="h-6 w-6" />
-            <span className="text-xl font-bold">justlive.chat</span>
-          </Link>
-          <nav className="flex items-center space-x-4">
-            {isLoggedIn ? (
-              <Button asChild>
-                <Link href="/app">Go to Dashboard</Link>
-              </Button>
-            ) : (
-              <>
-                <Button variant="ghost" asChild>
-                  <Link href="/login">Login</Link>
-                </Button>
-                <Button asChild>
-                  <Link href="/signup">Get Started Free</Link>
-                </Button>
-              </>
-            )}
-          </nav>
-        </div>
-      </header>
+      <Header />
 
       <main className="flex-1 w-full">
         {/* Hero Section */}
@@ -396,52 +375,7 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="bg-muted py-12 w-full">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center space-x-2 mb-4 md:mb-0">
-              <MessageSquare className="h-5 w-5" />
-              <span className="text-lg font-bold">justlive.chat</span>
-            </div>
-            <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-8">
-              <Link
-                href="/login"
-                className="text-sm text-muted-foreground hover:text-foreground"
-              >
-                Login
-              </Link>
-              <Link
-                href="/signup"
-                className="text-sm text-muted-foreground hover:text-foreground"
-              >
-                Sign Up
-              </Link>
-              <Link
-                href="#features"
-                className="text-sm text-muted-foreground hover:text-foreground"
-              >
-                Features
-              </Link>
-              <Link
-                href="#"
-                className="text-sm text-muted-foreground hover:text-foreground"
-              >
-                Terms of Service
-              </Link>
-              <Link
-                href="#"
-                className="text-sm text-muted-foreground hover:text-foreground"
-              >
-                Privacy Policy
-              </Link>
-            </div>
-          </div>
-          <div className="mt-8 text-center text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} justlive.chat. All rights
-            reserved.
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

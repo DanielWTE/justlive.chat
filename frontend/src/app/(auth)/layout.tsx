@@ -6,6 +6,10 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Authentication - justlive.chat",
   description: "Login or sign up to justlive.chat",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function AuthLayout({
