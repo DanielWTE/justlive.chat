@@ -31,7 +31,7 @@ export default function RootLayout({
       >
         {children}
         <Toaster position="bottom-right" />
-        <script src="http://localhost:4000/embed.js?id=cm7tiqdee000171vy410vm72t&colorPreset=dark"></script>
+        <script src="http://localhost:4000/embed.js?id=cm7v15246000171nzk63vznsq&colorPreset=dark"></script>
       </body>
     </html>
   );

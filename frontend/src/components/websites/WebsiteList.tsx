@@ -136,7 +136,6 @@ export function WebsiteList({
               <span>
                 Added {new Date(website.createdAt).toLocaleDateString()}
               </span>
-              <span>0 conversations this month</span>
             </div>
           </CardContent>
         </Card>
