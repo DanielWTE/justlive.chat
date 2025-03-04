@@ -43,13 +43,13 @@ export const socketAuth = async (
 
     // Basic validation
     if (!websiteId || !origin || !userAgent) {
-      return next(new Error('Authentication failed: Missing required headers'));
+      return next(new Error('Socket authentication failed: Missing required headers'));
     }
 
     // Validate website
     const website = await findWebsiteById(websiteId);
     if (!website) {
-      return next(new Error('Authentication failed: Invalid websiteId'));
+      return next(new Error('Socket authentication failed: Invalid websiteId'));
     }
 
     // Skip domain validation for admin interface
@@ -63,13 +63,13 @@ export const socketAuth = async (
 
       if (requestDomain !== websiteDomain) {
         console.warn(`Domain mismatch attempt from ${ip}: ${requestDomain} != ${websiteDomain}`);
-        return next(new Error('Authentication failed: Domain mismatch'));
+        return next(new Error('Socket authentication failed: Domain mismatch'));
       }
 
       // Check connection limit for domain
       if (!checkConnectionLimit(requestDomain)) {
         console.warn(`Connection limit exceeded for domain: ${requestDomain}`);
-        return next(new Error('Authentication failed: Too many connections from this domain'));
+        return next(new Error('Socket authentication failed: Too many connections from this domain'));
       }
 
       // Basic bot detection
@@ -78,7 +78,7 @@ export const socketAuth = async (
       ];
       if (suspiciousUserAgents.some(ua => userAgent.toLowerCase().includes(ua))) {
         console.warn(`Suspicious user agent detected from ${ip}: ${userAgent}`);
-        return next(new Error('Authentication failed: Invalid client'));
+        return next(new Error('Socket authentication failed: Invalid client'));
       }
     }
 
@@ -100,6 +100,6 @@ export const socketAuth = async (
     next();
   } catch (error) {
     console.error('Socket authentication error:', error);
-    next(new Error('Authentication failed: Internal error'));
+    next(new Error('Socket authentication failed: Internal error'));
   }
 }; 
