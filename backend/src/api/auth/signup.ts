@@ -9,8 +9,8 @@ export const handleAuthRegister = async (req: Request, res: Response) => {
     const { email, password, name } = req.body;
 
     // Validate input
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
+    if (!email || !password || !name) {
+      return res.status(400).json({ error: 'Email, password, and name are required' });
     }
 
     // Check if user already exists
