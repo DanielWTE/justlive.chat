@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
 import { ChatWindow } from "@/components/chat/ChatWindow";
 import { ClientToServerEvents, ServerToClientEvents } from "@/types/socket";
@@ -59,14 +59,14 @@ export default function ChatPage() {
   const [isMobileView, setIsMobileView] = React.useState(false);
 
   // Load chat sessions from server via socket connection
-  React.useEffect(() => {
+  useEffect(() => {
     // Chat sessions will be loaded from the server via socket connection
     // when we subscribe to websites
     setIsLoading(false);
   }, []);
 
   // Function to load message history for a room
-  const loadMessageHistory = React.useCallback(
+  const loadMessageHistory = useCallback(
     async (roomId: string, websiteId: string) => {
       // Skip if we've already loaded messages for this room
       if (loadedMessageRooms.has(roomId)) {
@@ -154,7 +154,7 @@ export default function ChatPage() {
   );
 
   // Fetch websites on mount
-  React.useEffect(() => {
+  useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}websites/list`, {
       credentials: "include",
     })
@@ -166,7 +166,7 @@ export default function ChatPage() {
   }, []);
 
   // Load message history for active sessions after websites are loaded
-  React.useEffect(() => {
+  useEffect(() => {
     if (websites.length > 0 && Object.keys(chatSessions).length > 0) {
       console.log("Loading message history for all sessions...");
       // Load for all sessions, not just active ones
@@ -182,7 +182,7 @@ export default function ChatPage() {
   }, [websites, chatSessions, loadMessageHistory]);
 
   // Load all chat sessions from the database on mount
-  React.useEffect(() => {
+  useEffect(() => {
     if (websites.length === 0) return;
 
     const loadAllChatSessions = async () => {
@@ -308,10 +308,8 @@ export default function ChatPage() {
     loadAllChatSessions();
   }, [websites]);
 
-  // Initialize socket connection
-  React.useEffect(() => {
+  useEffect(() => {
     if (websites.length === 0) {
-      console.log("Waiting for websites to be loaded...");
       return;
     }
 

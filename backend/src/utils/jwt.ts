@@ -24,12 +24,9 @@ export const createToken = (user: User): string => {
 
 export const verifyToken = (token: string): JwtPayload => {
   try {
-    console.log(`[JWT] Verifying token: ${token.substring(0, 10)}...`);
     const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    console.log(`[JWT] Token verified for user: ${decoded.email}`);
     return decoded;
   } catch (error) {
-    console.error('[JWT] Token verification failed:', error);
     throw new Error('Invalid token');
   }
 }; 
