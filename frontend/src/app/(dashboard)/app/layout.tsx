@@ -195,15 +195,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <LogOut className="h-4 w-4" />
           </Button>
         </div>
-        <div className="mt-4 px-4">
-          <Link
-            href="/help"
-            className="flex items-center text-sm text-muted-foreground hover:text-foreground"
-          >
-            <HelpCircle className="mr-2 h-4 w-4" />
-            <span>Help & Support</span>
-          </Link>
-        </div>
       </div>
     </div>
   );
