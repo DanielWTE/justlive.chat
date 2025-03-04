@@ -66,7 +66,10 @@ export interface ClientToServerEvents {
     visitorInfo?: {
       name: string;
       email: string;
-    }
+      url?: string;
+      pageTitle?: string;
+    },
+    isReconnect?: boolean
   }) => void;
   'chat:leave': (data: { roomId: string }) => void;
   'chat:message': (data: { 

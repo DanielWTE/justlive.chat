@@ -173,13 +173,107 @@ export const handleChatEvents = (
       email: string; 
       url?: string;
       pageTitle?: string;
-    } 
+    },
+    isReconnect?: boolean
   }) => {
     try {
-      console.log('Join attempt:', { socketId: socket.id, data });
-      const { websiteId, visitorInfo } = data;
-      let currentRoomId = data.roomId;
+      console.log('Join request:', { 
+        socketId: socket.id, 
+        websiteId: data.websiteId, 
+        roomId: data.roomId,
+        hasVisitorInfo: !!data.visitorInfo,
+        isReconnect: !!data.isReconnect
+      });
+
+      const { websiteId } = data;
       const { sessionId } = socket.data;
+      let roomId = data.roomId;
+      let currentRoomIdString: string;
+
+      // Check if it's a reconnection attempt
+      if (data.isReconnect && roomId) {
+        console.log('Reconnection attempt for room:', roomId);
+        
+        // Verify the room exists and is active
+        const existingRoom = await getChatRoomById(roomId);
+        if (!existingRoom) {
+          console.log('Room not found during reconnection:', roomId);
+          socket.emit('chat:error', { message: 'Chat room not found' });
+          return;
+        }
+
+        // Check if the room is ended or deleted
+        if (existingRoom.status === 'ended' || existingRoom.status === 'deleted') {
+          console.log('Attempted to reconnect to ended/deleted room:', roomId);
+          socket.emit('chat:error', { message: 'Chat session has ended' });
+          return;
+        }
+
+        // Join the existing room
+        currentRoomIdString = roomId;
+        
+        // Create a new participant or update existing one
+        const participant = await createChatParticipant(currentRoomIdString, sessionId);
+
+        // Join the socket room
+        await socket.join(currentRoomIdString);
+
+        // Emit participant status to the new participant
+        socket.emit('chat:participant:status', {
+          roomId: currentRoomIdString,
+          sessionId: participant.sessionId,
+          isOnline: true,
+          isTyping: false,
+          lastSeen: new Date(),
+          isAdmin: socket.data.isAdmin || false
+        });
+
+        // Broadcast to room that this participant is online
+        socket.to(currentRoomIdString).emit('chat:participant:status', {
+          roomId: currentRoomIdString,
+          sessionId: participant.sessionId,
+          isOnline: true,
+          isTyping: false,
+          lastSeen: new Date(),
+          isAdmin: socket.data.isAdmin || false
+        });
+
+        // Store visitor info if provided
+        if (data.visitorInfo && data.visitorInfo.name && data.visitorInfo.email) {
+          // Here you would store the visitor info in your database
+          // This depends on your database schema and implementation
+          const visitorInfoData = {
+            name: data.visitorInfo.name,
+            email: data.visitorInfo.email
+          };
+          await updateChatRoomVisitorInfo(roomId, visitorInfoData);
+          console.log('Visitor info received:', { roomId: roomId, visitorInfo: visitorInfoData });
+          
+          // You might want to emit this info to admins
+          const admins = adminSubscriptions.get(websiteId);
+          if (admins && roomId) {
+            admins.forEach(adminId => {
+              const adminSocket = io.sockets.sockets.get(adminId);
+              if (adminSocket) {
+                adminSocket.emit('chat:visitor:info', {
+                  roomId: roomId || '',
+                  visitorInfo: visitorInfoData
+                });
+              }
+            });
+          }
+        }
+
+        // Emit joined event with sessionId for client to store
+        socket.emit('chat:joined', { roomId: currentRoomIdString });
+        
+        console.log('Successfully reconnected to room:', { 
+          socketId: socket.id, 
+          roomId: currentRoomIdString 
+        });
+        
+        return;
+      }
 
       if (!sessionId || !websiteId) {
         socket.emit('chat:error', { message: 'Invalid session data' });
@@ -187,27 +281,31 @@ export const handleChatEvents = (
       }
 
       // Create or join room
-      if (!currentRoomId) {
+      if (!roomId) {
         const room = await createChatRoom(websiteId);
-        currentRoomId = room.id;
-        console.log('Created new room:', { roomId: currentRoomId, websiteId });
+        roomId = room.id;
+        console.log('Created new room:', { roomId: roomId, websiteId });
 
         // Store visitor info if provided
-        if (visitorInfo && visitorInfo.name && visitorInfo.email) {
+        if (data.visitorInfo && data.visitorInfo.name && data.visitorInfo.email) {
           // Here you would store the visitor info in your database
           // This depends on your database schema and implementation
-          await updateChatRoomVisitorInfo(currentRoomId, visitorInfo);
-          console.log('Visitor info received:', { roomId: currentRoomId, visitorInfo });
+          const visitorInfoData = {
+            name: data.visitorInfo.name,
+            email: data.visitorInfo.email
+          };
+          await updateChatRoomVisitorInfo(roomId, visitorInfoData);
+          console.log('Visitor info received:', { roomId: roomId, visitorInfo: visitorInfoData });
           
           // You might want to emit this info to admins
           const admins = adminSubscriptions.get(websiteId);
-          if (admins && currentRoomId) {
+          if (admins && roomId) {
             admins.forEach(adminId => {
               const adminSocket = io.sockets.sockets.get(adminId);
               if (adminSocket) {
                 adminSocket.emit('chat:visitor:info', {
-                  roomId: currentRoomId || '',
-                  visitorInfo
+                  roomId: roomId || '',
+                  visitorInfo: visitorInfoData
                 });
               }
             });
@@ -216,43 +314,43 @@ export const handleChatEvents = (
 
         // Notify admins about new chat session
         const admins = adminSubscriptions.get(websiteId);
-        if (admins && currentRoomId) {
+        if (admins && roomId) {
           admins.forEach(adminId => {
             const adminSocket = io.sockets.sockets.get(adminId);
             if (adminSocket) {
-              adminSocket.join(currentRoomId || '');
+              adminSocket.join(roomId || '');
               adminSocket.emit('chat:session:new', {
-                roomId: currentRoomId || '',
+                roomId: roomId || '',
                 websiteId,
                 visitorId: sessionId,
                 isActive: true,
-                visitorInfo // Include visitor info in the new session notification
+                visitorInfo: data.visitorInfo // Include visitor info in the new session notification
               });
             }
           });
         }
       } else {
         // Verify room exists and belongs to website
-        const room = await getChatRoomById(currentRoomId);
+        const room = await getChatRoomById(roomId);
         if (!room || room.websiteId !== websiteId) {
-          console.warn('Invalid room access attempt:', { roomId: currentRoomId, websiteId });
+          console.warn('Invalid room access attempt:', { roomId, websiteId });
           socket.emit('chat:error', { message: 'Invalid room' });
           return;
         }
-        console.log('Joining existing room:', { roomId: currentRoomId, websiteId });
+        console.log('Joining existing room:', { roomId: roomId, websiteId });
       }
 
-      if (!currentRoomId) {
+      if (!roomId) {
         socket.emit('chat:error', { message: 'Failed to create/join room' });
         return;
       }
 
       // Create participant
-      const participant = await createChatParticipant(currentRoomId, sessionId);
-      console.log('Created participant:', { sessionId, roomId: currentRoomId });
+      const participant = await createChatParticipant(roomId, sessionId);
+      console.log('Created participant:', { sessionId, roomId });
 
       // Join socket room
-      const currentRoomIdString = currentRoomId?.toString();
+      currentRoomIdString = roomId?.toString();
       if (!currentRoomIdString) {
         socket.emit("chat:error", { message: "Invalid room ID" });
         return;

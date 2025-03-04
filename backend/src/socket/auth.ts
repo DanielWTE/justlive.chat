@@ -30,6 +30,13 @@ const checkConnectionLimit = (domain: string): boolean => {
   return true;
 };
 
+// Generate a unique session ID
+const generateSessionId = (websiteId: string, socketId: string): string => {
+  const randomBytes = Math.random().toString(36).substring(2);
+  const timestamp = Date.now().toString(36);
+  return `${websiteId}-${socketId}-${timestamp}-${randomBytes}`;
+};
+
 export const socketAuth = async (
   socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>,
   next: (err?: Error) => void
@@ -40,6 +47,8 @@ export const socketAuth = async (
     const userAgent = socket.handshake.headers['user-agent'];
     const ip = socket.handshake.address;
     const isAdmin = socket.handshake.auth.isAdmin === true;
+    const providedSessionId = socket.handshake.auth.sessionId; // Get session ID if provided
+    const isReconnectAttempt = socket.handshake.auth.reconnectAttempt === true;
 
     // Basic validation
     if (!websiteId || !origin || !userAgent) {
@@ -61,45 +70,49 @@ export const socketAuth = async (
         .replace(/:\d+$/, '')         // Remove port
         .replace(/\/$/, '');          // Remove trailing slash
 
-      if (requestDomain !== websiteDomain) {
-        console.warn(`Domain mismatch attempt from ${ip}: ${requestDomain} != ${websiteDomain}`);
+      // Check if origin domain includes or is included in website domain
+      if (!requestDomain.includes(websiteDomain) && !websiteDomain.includes(requestDomain)) {
+        console.warn('Domain mismatch:', { websiteDomain, requestDomain });
         return next(new Error('Socket authentication failed: Domain mismatch'));
       }
 
-      // Check connection limit for domain
+      // Check connection limit for the domain
       if (!checkConnectionLimit(requestDomain)) {
-        console.warn(`Connection limit exceeded for domain: ${requestDomain}`);
         return next(new Error('Socket authentication failed: Too many connections from this domain'));
-      }
-
-      // Basic bot detection
-      const suspiciousUserAgents = [
-        'bot', 'crawler', 'spider', 'headless', 'puppet'
-      ];
-      if (suspiciousUserAgents.some(ua => userAgent.toLowerCase().includes(ua))) {
-        console.warn(`Suspicious user agent detected from ${ip}: ${userAgent}`);
-        return next(new Error('Socket authentication failed: Invalid client'));
       }
     }
 
-    // Generate a unique session ID with additional entropy
-    const randomBytes = Math.random().toString(36).substring(2);
-    const timestamp = Date.now().toString(36);
-    const sessionId = `${websiteId}-${socket.id}-${timestamp}-${randomBytes}`;
-    
-    // Attach data to socket
-    socket.data.sessionId = sessionId;
-    socket.data.websiteId = websiteId;
-    socket.data.domain = origin;
-    socket.data.connectTime = Date.now();
-    socket.data.isAdmin = isAdmin;
+    // Bot detection (simple check, you might want to expand this)
+    if (!isAdmin && userAgent && userAgent.toLowerCase().includes('bot')) {
+      return next(new Error('Socket authentication failed: Bot detected'));
+    }
 
-    // Log successful connection
-    console.log(`New ${isAdmin ? 'admin' : 'visitor'} connection from ${origin} (${ip}) at ${new Date().toISOString()}`);
+    // Generate or use provided session ID
+    const sessionId = providedSessionId && isReconnectAttempt 
+      ? providedSessionId 
+      : generateSessionId(websiteId, socket.id);
+
+    // Log connection
+    console.log(`Socket ${isAdmin ? 'admin' : 'visitor'} connected:`, { 
+      socketId: socket.id, 
+      websiteId, 
+      sessionId,
+      isReconnectAttempt
+    });
+
+    // Set socket data
+    socket.data = {
+      sessionId,
+      websiteId,
+      domain: origin,
+      connectTime: Date.now(),
+      lastActivity: Date.now(),
+      isAdmin
+    };
 
     next();
   } catch (error) {
-    console.error('Socket authentication error:', error);
+    console.error('Socket auth error:', error);
     next(new Error('Socket authentication failed: Internal error'));
   }
 }; 
