@@ -32,39 +32,37 @@ export function CreateWebsiteForm({
     const name = formData.get("name") as string;
     const domain = formData.get("domain") as string;
 
-    const promise = fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}websites/create`,
-      {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name, domain }),
-      }
-    );
+    const promise = fetch(`${process.env.NEXT_PUBLIC_API_URL}websites/create`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name, domain }),
+    });
 
     toast.promise(promise, {
-      loading: 'Creating website...',
+      loading: "Creating website...",
       success: (response) => {
         mutate(`${process.env.NEXT_PUBLIC_API_URL}websites/list`);
         onSuccess?.();
         onClose();
-        return 'Website created successfully';
+        return "Website created successfully";
       },
       error: (err) => {
         setError(err instanceof Error ? err.message : "An error occurred");
-        return 'Failed to create website';
+        return "Failed to create website";
       },
       finally: () => {
         setIsLoading(false);
-      }
+      },
     });
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
+        <h2 className="text-lg font-bold">Add Website</h2>
         <div className="space-y-2">
           <Label htmlFor="name">Website Name</Label>
           <Input
@@ -75,10 +73,7 @@ export function CreateWebsiteForm({
             disabled={isLoading}
           />
         </div>
-        <DomainInput
-          disabled={isLoading}
-          required
-        />
+        <DomainInput disabled={isLoading} required />
         {error && <p className="text-sm text-red-500">{error}</p>}
       </div>
       <div className="flex justify-end space-x-2">

@@ -5,7 +5,7 @@ import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
-import { handleAuthRegister, handleAuthLogin, handleAuthSession } from "./api/auth";
+import { handleAuthRegister, handleAuthLogin, handleAuthSession, handleLogout } from "./api/auth";
 import { handleUserProfile } from "./api/users";
 import { 
   handleWebsiteCreate, 
@@ -104,6 +104,7 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 app.post("/auth/signup", handleAuthRegister);
 app.post("/auth/login", handleAuthLogin);
 app.get("/auth/session", authMiddleware, handleAuthSession);
+app.post("/auth/logout", handleLogout);
 app.get("/users/profile", authMiddleware, handleUserProfile);
 
 // Website routes

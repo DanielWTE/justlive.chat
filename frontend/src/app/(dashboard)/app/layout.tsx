@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -57,12 +57,59 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
-  const { user } = useSession();
+  const { user, isLoading, logout, isAuthenticated, isSessionExpired } =
+    useSession();
+  const router = useRouter();
+  const [mounted, setMounted] = useState(false);
 
-  // Close mobile menu when route changes
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     setIsOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (mounted && !isLoading && (!isAuthenticated || isSessionExpired)) {
+      router.push("/login");
+    }
+  }, [isLoading, isAuthenticated, isSessionExpired, router, mounted]);
+
+  if (!mounted) {
+    return null;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-primary"></div>
+          <p className="text-sm text-muted-foreground">
+            Loading your session...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated || isSessionExpired) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-primary"></div>
+          <p className="text-sm text-muted-foreground">
+            Redirecting to login...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const handleLogout = async () => {
+    await logout();
+    window.location.href = "/login";
+  };
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full py-4">
@@ -136,9 +183,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </Avatar>
             <div className="space-y-1">
               <p className="text-sm font-medium leading-none">{user?.email}</p>
+              {user?.name && (
+                <p className="text-xs text-muted-foreground">{user.name}</p>
+              )}
             </div>
           </div>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={handleLogout}
+          >
             <LogOut className="h-4 w-4" />
           </Button>
         </div>
@@ -174,7 +229,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </SheetContent>
       </Sheet>
 
-      {/* Desktop Sidebar */}
+      {/* Sidebar */}
       <aside className="hidden md:flex w-64 flex-col border-r bg-background">
         <SidebarContent />
       </aside>

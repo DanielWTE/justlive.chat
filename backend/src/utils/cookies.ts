@@ -1,7 +1,7 @@
 import { Response } from 'express';
 
 export const setCookie = (res: Response, token: string): void => {
-  res.cookie('token', token, {
+  res.cookie('justlivechat_token', token, {
     domain: process.env.NODE_ENV === 'production' ? '.justlive.chat' : 'localhost',
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
@@ -11,7 +11,7 @@ export const setCookie = (res: Response, token: string): void => {
 };
 
 export const clearCookie = (res: Response): void => {
-  res.clearCookie('token', {
+  res.clearCookie('justlivechat_token', {
     domain: process.env.NODE_ENV === 'production' ? '.justlive.chat' : 'localhost',
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',

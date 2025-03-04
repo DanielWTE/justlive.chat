@@ -8,7 +8,6 @@ export interface UserProfile {
   bio?: string;
   avatarUrl?: string;
   createdAt: string;
-  // Add any other profile fields that your API returns
 }
 
 export function useProfile() {

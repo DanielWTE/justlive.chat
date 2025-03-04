@@ -39,3 +39,15 @@ export const findWebsitesByUserId = async (userId: string) => {
     }
   });
 }; 
+
+export const getWebsiteByDomain = async (domain: string) => {
+  return prisma.website.findFirst({
+    where: { domain }
+  });
+};
+
+export const getUserById = async (id: string) => {
+  return prisma.user.findUnique({
+    where: { id }
+  });
+};

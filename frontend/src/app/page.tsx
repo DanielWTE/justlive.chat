@@ -1,8 +1,22 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { MessageSquare, Globe, Zap, Code, Shield, Smile, ArrowRight, Palette, Mail, BellRing } from "lucide-react";
+import {
+  MessageSquare,
+  Globe,
+  Zap,
+  Code,
+  Smile,
+  ArrowRight,
+  Palette,
+} from "lucide-react";
+import { useSession } from "@/hooks/useSession";
 
 export default function Home() {
+  const { user, isLoading } = useSession();
+  const isLoggedIn = !!user && !isLoading;
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b">
@@ -12,12 +26,20 @@ export default function Home() {
             <span className="text-xl font-bold">justlive.chat</span>
           </Link>
           <nav className="flex items-center space-x-4">
-            <Button variant="ghost" asChild>
-              <Link href="/login">Login</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/signup">Get Started Free</Link>
-            </Button>
+            {isLoggedIn ? (
+              <Button asChild>
+                <Link href="/app">Go to Dashboard</Link>
+              </Button>
+            ) : (
+              <>
+                <Button variant="ghost" asChild>
+                  <Link href="/login">Login</Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/signup">Get Started Free</Link>
+                </Button>
+              </>
+            )}
           </nav>
         </div>
       </header>
@@ -34,15 +56,24 @@ export default function Home() {
                 Connect with your website visitors in real-time
               </h1>
               <p className="mx-auto max-w-[42rem] text-muted-foreground text-lg sm:text-xl">
-                Add a beautiful chat widget to your website in minutes. Engage with your visitors, 
-                answer questions, and provide support - all completely free and without any branding.
+                Add a beautiful chat widget to your website in minutes. Engage
+                with your visitors, answer questions, and provide support - all
+                completely free and without any branding.
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <Button size="lg" asChild className="gap-2">
-                  <Link href="/signup">
-                    Get Started <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </Button>
+                {isLoggedIn ? (
+                  <Button size="lg" asChild className="gap-2">
+                    <Link href="/app">
+                      Go to Dashboard <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button size="lg" asChild className="gap-2">
+                    <Link href="/signup">
+                      Get Started <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                )}
                 <Button size="lg" variant="outline" asChild>
                   <Link href="#features">See Features</Link>
                 </Button>
@@ -77,11 +108,12 @@ export default function Home() {
                 Everything you need, completely free
               </h2>
               <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-                justlive.chat provides all the essential features you need to connect with your website visitors, 
-                without any hidden costs or limitations.
+                justlive.chat provides all the essential features you need to
+                connect with your website visitors, without any hidden costs or
+                limitations.
               </p>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
               <div className="bg-muted/30 p-6 rounded-lg border">
                 <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
@@ -89,57 +121,67 @@ export default function Home() {
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Real-time Chat</h3>
                 <p className="text-muted-foreground">
-                  Engage with your visitors in real-time with instant messaging. See when they're typing and respond immediately.
+                  Engage with your visitors in real-time with instant messaging.
+                  See when they're typing and respond immediately.
                 </p>
               </div>
-              
+
               <div className="bg-muted/30 p-6 rounded-lg border">
                 <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
                   <Globe className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Multiple Websites</h3>
+                <h3 className="text-xl font-semibold mb-2">
+                  Multiple Websites
+                </h3>
                 <p className="text-muted-foreground">
-                  Add the chat widget to multiple websites and manage all conversations from a single dashboard.
+                  Add the chat widget to multiple websites and manage all
+                  conversations from a single dashboard.
                 </p>
               </div>
-              
+
               <div className="bg-muted/30 p-6 rounded-lg border">
                 <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
                   <Code className="h-6 w-6 text-primary" />
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Easy Integration</h3>
                 <p className="text-muted-foreground">
-                  Add the chat widget to your website with a simple code snippet. No technical knowledge required.
+                  Add the chat widget to your website with a simple code
+                  snippet. No technical knowledge required.
                 </p>
               </div>
-              
+
               <div className="bg-muted/30 p-6 rounded-lg border">
                 <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
                   <Palette className="h-6 w-6 text-primary" />
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Beautiful Design</h3>
                 <p className="text-muted-foreground">
-                  Our chat widget is designed to look great on any website with a modern, clean interface your visitors will love.
+                  Our chat widget is designed to look great on any website with
+                  a modern, clean interface your visitors will love.
                 </p>
               </div>
-              
+
               <div className="bg-muted/30 p-6 rounded-lg border">
                 <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
                   <Smile className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Visitor Information</h3>
+                <h3 className="text-xl font-semibold mb-2">
+                  Visitor Information
+                </h3>
                 <p className="text-muted-foreground">
-                  See when visitors are online and collect basic information to provide better support.
+                  See when visitors are online and collect basic information to
+                  provide better support.
                 </p>
               </div>
-              
+
               <div className="bg-muted/30 p-6 rounded-lg border">
                 <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
                   <Zap className="h-6 w-6 text-primary" />
                 </div>
                 <h3 className="text-xl font-semibold mb-2">No Branding</h3>
                 <p className="text-muted-foreground">
-                  Unlike other services, our chat widget is completely unbranded. Your visitors will never see our logo.
+                  Unlike other services, our chat widget is completely
+                  unbranded. Your visitors will never see our logo.
                 </p>
               </div>
             </div>
@@ -157,7 +199,7 @@ export default function Home() {
                 Get started with justlive.chat in just three simple steps
               </p>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
               <div className="text-center">
                 <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 mx-auto">
@@ -165,10 +207,11 @@ export default function Home() {
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Create Account</h3>
                 <p className="text-muted-foreground">
-                  Sign up for a free account in seconds. No credit card required.
+                  Sign up for a free account in seconds. No credit card
+                  required.
                 </p>
               </div>
-              
+
               <div className="text-center">
                 <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 mx-auto">
                   <span className="text-xl font-bold text-primary">2</span>
@@ -178,7 +221,7 @@ export default function Home() {
                   Enter your website details and get a unique embed code.
                 </p>
               </div>
-              
+
               <div className="text-center">
                 <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 mx-auto">
                   <span className="text-xl font-bold text-primary">3</span>
@@ -189,11 +232,17 @@ export default function Home() {
                 </p>
               </div>
             </div>
-            
+
             <div className="text-center mt-12">
-              <Button size="lg" asChild>
-                <Link href="/signup">Get Started Now</Link>
-              </Button>
+              {isLoggedIn ? (
+                <Button size="lg" asChild>
+                  <Link href="/app">Go to Dashboard</Link>
+                </Button>
+              ) : (
+                <Button size="lg" asChild>
+                  <Link href="/signup">Get Started Now</Link>
+                </Button>
+              )}
             </div>
           </div>
         </section>
@@ -207,7 +256,9 @@ export default function Home() {
                   Customize to match your brand
                 </h2>
                 <p className="text-muted-foreground text-lg mb-6">
-                  Make the chat widget your own with extensive customization options. Change colors, position, and appearance to perfectly match your website's design.
+                  Make the chat widget your own with extensive customization
+                  options. Change colors, position, and appearance to perfectly
+                  match your website's design.
                 </p>
                 <ul className="space-y-4">
                   <li className="flex items-start">
@@ -236,9 +287,15 @@ export default function Home() {
                   </li>
                 </ul>
                 <div className="mt-8">
-                  <Button asChild>
-                    <Link href="/signup">Start Customizing</Link>
-                  </Button>
+                  {isLoggedIn ? (
+                    <Button asChild>
+                      <Link href="/app">Go to Dashboard</Link>
+                    </Button>
+                  ) : (
+                    <Button asChild>
+                      <Link href="/signup">Start Customizing</Link>
+                    </Button>
+                  )}
                 </div>
               </div>
               <div className="bg-muted/30 rounded-xl p-6 border">
@@ -280,40 +337,58 @@ export default function Home() {
                 Everything you need to know about justlive.chat
               </p>
             </div>
-            
+
             <div className="max-w-3xl mx-auto space-y-6">
               <div className="border rounded-lg p-6">
-                <h3 className="text-xl font-semibold mb-2">Is justlive.chat really free?</h3>
+                <h3 className="text-xl font-semibold mb-2">
+                  Is justlive.chat really free?
+                </h3>
                 <p className="text-muted-foreground">
-                  Yes, justlive.chat is completely free to use. There are no hidden fees, no credit card required, and no limitations on usage.
+                  Yes, justlive.chat is completely free to use. There are no
+                  hidden fees, no credit card required, and no limitations on
+                  usage.
                 </p>
               </div>
-              
+
               <div className="border rounded-lg p-6">
-                <h3 className="text-xl font-semibold mb-2">How many websites can I add?</h3>
+                <h3 className="text-xl font-semibold mb-2">
+                  How many websites can I add?
+                </h3>
                 <p className="text-muted-foreground">
-                  You can add as many websites as you want to your account. There's no limit on the number of websites you can manage.
+                  You can add as many websites as you want to your account.
+                  There's no limit on the number of websites you can manage.
                 </p>
               </div>
-              
+
               <div className="border rounded-lg p-6">
-                <h3 className="text-xl font-semibold mb-2">Will there be any branding on the chat widget?</h3>
+                <h3 className="text-xl font-semibold mb-2">
+                  Will there be any branding on the chat widget?
+                </h3>
                 <p className="text-muted-foreground">
-                  No, the chat widget is completely unbranded. Your visitors will never see our logo or any mention of justlive.chat.
+                  No, the chat widget is completely unbranded. Your visitors
+                  will never see our logo or any mention of justlive.chat.
                 </p>
               </div>
-              
+
               <div className="border rounded-lg p-6">
-                <h3 className="text-xl font-semibold mb-2">Can I customize the appearance of the chat widget?</h3>
+                <h3 className="text-xl font-semibold mb-2">
+                  Can I customize the appearance of the chat widget?
+                </h3>
                 <p className="text-muted-foreground">
-                  Yes, you can customize the colors and appearance of the chat widget to match your website's design with multiple themes and style options.
+                  Yes, you can customize the colors and appearance of the chat
+                  widget to match your website's design with multiple themes and
+                  style options.
                 </p>
               </div>
-              
+
               <div className="border rounded-lg p-6">
-                <h3 className="text-xl font-semibold mb-2">How do I get notified of new messages?</h3>
+                <h3 className="text-xl font-semibold mb-2">
+                  How do I get notified of new messages?
+                </h3>
                 <p className="text-muted-foreground">
-                  You'll receive real-time notifications in the dashboard when you're online. We're working on email notifications for when you're offline.
+                  You'll receive real-time notifications in the dashboard when
+                  you're online. We're working on email notifications for when
+                  you're offline.
                 </p>
               </div>
             </div>
@@ -329,25 +404,41 @@ export default function Home() {
               <span className="text-lg font-bold">justlive.chat</span>
             </div>
             <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-8">
-              <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground">
+              <Link
+                href="/login"
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
                 Login
               </Link>
-              <Link href="/signup" className="text-sm text-muted-foreground hover:text-foreground">
+              <Link
+                href="/signup"
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
                 Sign Up
               </Link>
-              <Link href="#features" className="text-sm text-muted-foreground hover:text-foreground">
+              <Link
+                href="#features"
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
                 Features
               </Link>
-              <Link href="#" className="text-sm text-muted-foreground hover:text-foreground">
+              <Link
+                href="#"
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
                 Terms of Service
               </Link>
-              <Link href="#" className="text-sm text-muted-foreground hover:text-foreground">
+              <Link
+                href="#"
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
                 Privacy Policy
               </Link>
             </div>
           </div>
           <div className="mt-8 text-center text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} justlive.chat. All rights reserved.
+            &copy; {new Date().getFullYear()} justlive.chat. All rights
+            reserved.
           </div>
         </div>
       </footer>

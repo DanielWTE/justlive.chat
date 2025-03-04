@@ -60,7 +60,7 @@ export function WebsiteList({
           </CardDescription>
         </CardHeader>
         <CardContent className="flex justify-center">
-          <Button>
+          <Button onClick={() => onCustomizeClick("add")}>
             <Plus className="mr-2 h-4 w-4" />
             Add Your First Website
           </Button>
@@ -129,14 +129,6 @@ export function WebsiteList({
                     )}
                   </Button>
                 </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => onCustomizeClick(website.id)}
-                >
-                  <Code className="mr-2 h-4 w-4" />
-                  Customize
-                </Button>
               </div>
             </div>
             <Separator />

@@ -15,9 +15,16 @@ import { Input } from "@/components/ui/input";
 import { signupSchema, type SignupFormData } from "@/schemas/auth";
 import { useState } from "react";
 import Link from "next/link";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle, ArrowRight } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 
 export function SignupForm() {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const fromPath = searchParams.get("from") || "/app";
+  
   const form = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -29,6 +36,8 @@ export function SignupForm() {
 
   async function onSubmit(data: SignupFormData) {
     setIsLoading(true);
+    setError(null);
+    
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}auth/signup`, {
         method: "POST",
@@ -43,14 +52,15 @@ export function SignupForm() {
       });
 
       if (!response.ok) {
-        throw new Error("Signup failed");
+        const errorData = await response.json().catch(() => ({}));
+        setError(errorData.message || "Signup failed. Please try again.");
+        return;
       }
 
-      // Redirect to dashboard on success
-      window.location.href = "/app";
+      window.location.href = fromPath;
     } catch (error) {
       console.error("Signup error:", error);
-      // Handle error (you might want to show an error message to the user)
+      setError(error instanceof Error ? error.message : "Something went wrong. Please try again.");  
     } finally {
       setIsLoading(false);
     }
@@ -58,6 +68,13 @@ export function SignupForm() {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
@@ -67,7 +84,13 @@ export function SignupForm() {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input placeholder="name@example.com" {...field} type="email" />
+                  <Input 
+                    placeholder="name@example.com" 
+                    {...field} 
+                    type="email"
+                    autoComplete="email"
+                    disabled={isLoading}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -80,7 +103,13 @@ export function SignupForm() {
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input placeholder="••••••••" {...field} type="password" />
+                  <Input 
+                    placeholder="••••••••" 
+                    {...field} 
+                    type="password"
+                    autoComplete="new-password"
+                    disabled={isLoading}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -93,14 +122,24 @@ export function SignupForm() {
               <FormItem>
                 <FormLabel>Confirm Password</FormLabel>
                 <FormControl>
-                  <Input placeholder="••••••••" {...field} type="password" />
+                  <Input 
+                    placeholder="••••••••" 
+                    {...field} 
+                    type="password"
+                    autoComplete="new-password"
+                    disabled={isLoading}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Creating account..." : "Create account"}
+          <Button type="submit" className="w-full gap-2" disabled={isLoading}>
+            {isLoading ? "Creating account..." : (
+              <>
+                Get Started Free <ArrowRight className="h-4 w-4" />
+              </>
+            )}
           </Button>
         </form>
       </Form>

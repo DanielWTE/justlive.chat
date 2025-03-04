@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { createWebsite } from "../../database/create";
+import { getWebsiteByDomain } from "../../database/fetch";
 
 export const handleWebsiteCreate = async (req: Request, res: Response) => {
   try {
@@ -26,4 +27,4 @@ export const handleWebsiteCreate = async (req: Request, res: Response) => {
       error: "Internal server error",
     });
   }
-}; 
+};

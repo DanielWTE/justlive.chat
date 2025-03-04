@@ -51,15 +51,17 @@ export default function WebsitesPage() {
           websites={websites}
           onSettingsClick={setSelectedWebsiteId}
           onCopyEmbedCode={handleCopyEmbedCode}
-          onCustomizeClick={() => {
-            /* TODO: Implement customization */
+          onCustomizeClick={(e) => {
+            if (e === "add") {
+              setShowCreateDialog(true);
+            }
           }}
         />
       )}
 
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent>
-          <DialogTitle>Add Website</DialogTitle>
+          <DialogTitle />
           <CreateWebsiteForm onClose={() => setShowCreateDialog(false)} />
         </DialogContent>
       </Dialog>

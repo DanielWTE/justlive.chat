@@ -14,6 +14,14 @@ export const createUser = async (email: string, password: string, name?: string)
 };
 
 export const createWebsite = async (userId: string, name: string, domain: string) => {
+  const userExists = await prisma.user.findUnique({
+    where: { id: userId }
+  });
+  
+  if (!userExists) {
+    throw new Error(`User with ID ${userId} does not exist`);
+  }
+  
   return prisma.website.create({
     data: {
       name,
