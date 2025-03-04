@@ -1,13 +1,14 @@
 import useSWR from "swr";
 import { fetcher, type ApiResponse } from "./fetcher";
-
 export interface UserProfile {
-  id: string;
-  email: string;
-  name?: string;
-  bio?: string;
-  avatarUrl?: string;
-  createdAt: string;
+  data: {
+    id: string;
+    email: string;
+    name?: string;
+    avatarUrl?: string;
+    createdAt: string;
+    updatedAt: string;
+  }
 }
 
 export function useProfile() {

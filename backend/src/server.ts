@@ -5,15 +5,11 @@ import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
-import { handleAuthRegister, handleAuthLogin, handleAuthSession, handleLogout } from "./api/auth";
-import { handleUserProfile } from "./api/users";
-import { 
-  handleWebsiteCreate, 
-  handleWebsiteList, 
-  handleGetWebsite, 
-  handleUpdateWebsite, 
-  handleDeleteWebsite 
-} from "./api/websites";
+import { handleAuthRegister } from "./api/auth/signup";
+import { handleAuthLogin } from "./api/auth/login";
+import { handleAuthSession } from "./api/auth/session";
+import { handleLogout } from "./api/auth/logout";
+import { handleWebsiteCreate, handleWebsiteList, handleGetWebsite, handleUpdateWebsite, handleDeleteWebsite } from "./api/websites";
 import { handleEmbedGenerate } from "./api/embed";
 import { handleGetMessages, handleVisitorLeft, handleGetChatRooms } from "./api/chat";
 import { domainWhitelist } from "./middleware/domain";
@@ -23,6 +19,7 @@ import { socketAuth } from "./socket/auth";
 import { handleChatEvents } from "./socket/chat";
 import { ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData } from "./socket/events";
 import { PrismaClient } from "@prisma/client";
+import usersRouter from './api/users';
 
 dotenv.config();
 
@@ -105,7 +102,9 @@ app.post("/auth/signup", handleAuthRegister);
 app.post("/auth/login", handleAuthLogin);
 app.get("/auth/session", authMiddleware, handleAuthSession);
 app.post("/auth/logout", handleLogout);
-app.get("/users/profile", authMiddleware, handleUserProfile);
+
+// Users routes
+app.use("/users", usersRouter);
 
 // Website routes
 app.post("/websites/create", authMiddleware, handleWebsiteCreate);

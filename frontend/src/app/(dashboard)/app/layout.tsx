@@ -182,10 +182,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               </AvatarFallback>
             </Avatar>
             <div className="space-y-1">
-              <p className="text-sm font-medium leading-none">{user?.email}</p>
-              {user?.name && (
-                <p className="text-xs text-muted-foreground">{user.name}</p>
-              )}
+              <p className="text-sm font-medium leading-none">{user?.name}</p>
+              <p className="text-xs text-muted-foreground">{user?.email}</p>
             </div>
           </div>
           <Button
