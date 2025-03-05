@@ -128,7 +128,7 @@ export const handleChatEvents = (
         }
 
         // Send existing messages
-        messages.forEach(msg => {
+        messages.forEach((msg: any) => {
           socket.emit('chat:message', {
             id: msg.id,
             content: msg.content,
@@ -326,8 +326,10 @@ export const handleChatEvents = (
             name: data.visitorInfo.name,
             email: data.visitorInfo.email
           };
-          await updateChatRoomVisitorInfo(roomId, visitorInfoData);
-          console.log('Visitor info received:', { roomId: roomId, visitorInfo: visitorInfoData });
+          if (roomId) {
+            await updateChatRoomVisitorInfo(roomId, visitorInfoData);
+            console.log('Visitor info received:', { roomId: roomId, visitorInfo: visitorInfoData });
+          }
           
           // You might want to emit this info to admins
           const admins = adminSubscriptions.get(websiteId);

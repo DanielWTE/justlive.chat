@@ -1,5 +1,4 @@
 import jwt from 'jsonwebtoken';
-import { User } from '@prisma/client';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
@@ -11,7 +10,7 @@ export interface JwtPayload {
   iat?: number; // Issued at time
 }
 
-export const createToken = (user: User): string => {
+export const createToken = (user: any): string => {
   return jwt.sign(
     {
       userId: user.id,

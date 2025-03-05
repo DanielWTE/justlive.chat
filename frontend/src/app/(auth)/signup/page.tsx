@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { SignupForm } from "@/components/auth/SignupForm";
 import { useSession } from "@/hooks/useSession";
@@ -23,7 +23,9 @@ export default function SignupPage() {
         <h1 className="text-2xl font-bold">Get started for free</h1>
         <p className="text-muted-foreground">Create your account in seconds</p>
       </div>
-      <SignupForm />
+      <Suspense fallback={<div>Loading...</div>}>
+        <SignupForm />
+      </Suspense>
     </div>
   );
-} 
+}
