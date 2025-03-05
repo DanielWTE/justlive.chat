@@ -93,7 +93,7 @@ export const socketAuth = async (
       : generateSessionId(websiteId, socket.id);
 
     // Log connection
-    console.log(`Socket ${isAdmin ? 'admin' : 'visitor'} connected:`, { 
+    console.log(`[Socket-Auth] Socket ${isAdmin ? 'admin' : 'visitor'} connected:`, { 
       socketId: socket.id, 
       websiteId, 
       sessionId,
@@ -107,7 +107,8 @@ export const socketAuth = async (
       domain: origin,
       connectTime: Date.now(),
       lastActivity: Date.now(),
-      isAdmin
+      isAdmin,
+      isReconnectAttempt
     };
 
     next();

@@ -1716,74 +1716,6 @@
       // Focus on email input
       emailInput.focus();
     };
-    
-    // Function to initialize chat
-    const initializeChat = () => {
-      console.log('Initializing chat...');
-      
-      // Reset visitor left reported flag
-      visitorLeftReported = false;
-      
-      // Clear messages container
-      messagesContainer.innerHTML = '';
-      
-      // Add connecting message
-      const connectingMessage = document.createElement('div');
-      connectingMessage.className = 'justlive-chat-welcome-message';
-      
-      connectingMessage.style.backgroundColor = '#E2E8F0';
-      connectingMessage.style.color = '#4A5568';
-      connectingMessage.style.border = '1px solid #CBD5E0';
-      connectingMessage.style.alignSelf = 'center';
-      connectingMessage.style.textAlign = 'center';
-      connectingMessage.style.maxWidth = '90%';
-      connectingMessage.style.borderRadius = '12px';
-      connectingMessage.style.marginBottom = '16px';
-      connectingMessage.style.marginTop = '8px';
-      connectingMessage.style.padding = '10px 15px';
-      connectingMessage.textContent = t.connecting;
-      messagesContainer.appendChild(connectingMessage);
-      
-      // Enable input and send button
-      input.disabled = false;
-      sendButton.disabled = false;
-      
-      // Show input container
-      inputContainer.style.display = 'flex';
-      
-      // Focus on input
-      input.focus();
-      
-      // Emit join event
-      console.log('Emitting chat:join event with visitor info:', hasSubmittedInfo ? visitorInfo : null);
-      
-      // Always update URL and page title on each page load
-      visitorInfo.url = window.location.href;
-      visitorInfo.pageTitle = document.title;
-      
-      socket.emit('chat:join', {
-        websiteId,
-        roomId: currentRoomId, // Use stored room ID if available
-        visitorInfo: hasSubmittedInfo ? visitorInfo : null
-      });
-      
-      // Fetch admin status after a short delay to ensure socket connection
-      setTimeout(() => {
-        fetchAdminStatus((data) => {
-          console.log('Admin status received in initializeChat:', data);
-          // The welcome message will be updated by handleAdminStatusResponse
-        });
-      }, 1000);
-      
-      // WICHTIG: Entferne die Aufrufe von attemptReconnection und showWelcomeMessage hier
-      // Wir haben bereits eine Verbindung initiiert und wollen nicht den Welcome-Screen anzeigen
-      // if (currentRoomId && chatWasActive) {
-      //   attemptReconnection();
-      // } else {
-      //   // Show welcome message for new chats
-      //   showWelcomeMessage();
-      // }
-    };
 
     // Event handlers
     button.addEventListener('click', () => {
@@ -2332,44 +2264,6 @@
         }
       } else {
         console.log('Messages container not found');
-      }
-    };
-
-    // Function to handle reconnection attempt
-    const attemptReconnection = () => {
-      if (currentRoomId && messagesContainer) {
-        // Add reconnecting message
-        addSystemMessage(t.reconnecting);
-        
-        // Attempt to join the existing room with the stored visitor info
-        socket.emit('chat:join', {
-          websiteId,
-          roomId: currentRoomId,
-          visitorInfo: storedVisitorInfo,
-          isReconnect: true
-        });
-        
-        // Set a timeout for reconnection attempt
-        const reconnectTimeout = setTimeout(() => {
-          if (!reconnected) {
-            addSystemMessage(t.reconnectionFailed);
-            currentRoomId = null;
-            localStorage.removeItem(`justlive-chat-room-${websiteId}`);
-            localStorage.removeItem(`justlive-chat-visitor-${websiteId}`);
-            localStorage.removeItem(`justlive-chat-chat-active-${websiteId}`);
-            localStorage.removeItem(`justlive-chat-session-${websiteId}`);
-            
-            // Show welcome message again
-            showWelcomeMessage();
-          }
-        }, 10000);
-        
-        // Clear timeout if reconnection is successful
-        socket.once('chat:joined', () => {
-          clearTimeout(reconnectTimeout);
-          reconnected = true;
-          addSystemMessage(t.reconnected);
-        });
       }
     };
 

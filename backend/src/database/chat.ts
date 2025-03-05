@@ -104,10 +104,10 @@ export const createChatParticipant = async (roomId: string, sessionId: string) =
       sessionId,
       roomId,
       isOnline: true,
-      isTyping: false,
-      lastSeen: new Date()
-    },
-  });
+        isTyping: false,
+        lastSeen: new Date()
+      },
+    });
 };
 
 export const updateParticipantStatus = async (sessionId: string, isOnline: boolean) => {

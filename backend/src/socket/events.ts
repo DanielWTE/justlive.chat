@@ -103,4 +103,5 @@ export interface SocketData {
   connectTime: number;
   lastActivity?: number;
   isAdmin?: boolean;
+  isReconnectAttempt?: boolean;
 } 

@@ -174,7 +174,7 @@ export const handleChatEvents = (
       url?: string;
       pageTitle?: string;
     },
-    isReconnect?: boolean
+    isReconnectAttempt?: boolean
   }) => {
     try {
       console.log('Join request:', { 
@@ -182,7 +182,7 @@ export const handleChatEvents = (
         websiteId: data.websiteId, 
         roomId: data.roomId,
         hasVisitorInfo: !!data.visitorInfo,
-        isReconnect: !!data.isReconnect
+        isReconnectAttempt: !!socket.data.isReconnectAttempt
       });
 
       const { websiteId } = data;
@@ -191,7 +191,7 @@ export const handleChatEvents = (
       let currentRoomIdString: string;
 
       // Check if it's a reconnection attempt
-      if (data.isReconnect && roomId) {
+      if (socket.data.isReconnectAttempt && roomId) {
         console.log('Reconnection attempt for room:', roomId);
         
         // Verify the room exists and is active
@@ -213,7 +213,20 @@ export const handleChatEvents = (
         currentRoomIdString = roomId;
         
         // Create a new participant or update existing one
-        const participant = await createChatParticipant(currentRoomIdString, sessionId);
+        let participant;
+        const existingParticipant = await getChatParticipant(sessionId);
+        if (existingParticipant) {
+          await updateParticipantStatus(sessionId, true);
+          participant = existingParticipant;
+        } else {
+          participant = await createChatParticipant(currentRoomIdString, sessionId);
+        }
+
+        console.log('[Chat Socket] Found participant:', {
+          roomId: currentRoomIdString,
+          participantId: participant.id,
+          sessionId: participant.sessionId
+        });
 
         // Join the socket room
         await socket.join(currentRoomIdString);
@@ -364,9 +377,16 @@ export const handleChatEvents = (
         return;
       }
 
-      // Create participant
-      const participant = await createChatParticipant(roomId, sessionId);
-      console.log('Created participant:', { sessionId, roomId });
+     // Check if participant already exists
+      const existingParticipant = await getChatParticipant(sessionId);
+      if (existingParticipant) {
+        await updateParticipantStatus(sessionId, true);
+        console.log('Updated existing participant:', { sessionId, roomId });
+      } else {
+        // Create participant
+        await createChatParticipant(roomId, sessionId);
+        console.log('Created participant:', { sessionId, roomId });
+      }
 
       // Join socket room
       currentRoomIdString = roomId?.toString();
