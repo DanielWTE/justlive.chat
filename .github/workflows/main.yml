@@ -116,7 +116,9 @@ jobs:
   deploy:
     name: Deploy to Production
     needs: build-and-push
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    # if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    # Disable deploy for now
+    if: false
     runs-on: self-hosted
     
     steps:
