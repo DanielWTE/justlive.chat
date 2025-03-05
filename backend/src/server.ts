@@ -20,7 +20,7 @@ import { handleChatEvents } from "./socket/chat";
 import { ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData } from "./socket/events";
 import usersRouter from './api/users';
 
-dotenv.config();
+dotenv.config({ path: '../.env' });
 
 const app = express();
 const httpServer = createServer(app);
