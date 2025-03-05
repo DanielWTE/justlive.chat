@@ -2,6 +2,28 @@
 
 A live chat application with a frontend built with Next.js and a backend using Express and Prisma.
 
+![JustLive.Chat Logo](https://justlive.chat/logo.png)
+
+## Overview
+
+JustLive.Chat is a modern live chat solution that enables website owners to communicate with their visitors in real-time. The application offers simple integration into existing websites and a user-friendly interface for administrators and visitors.
+
+### Key Features
+
+- **Real-time Chat**: Instant communication between website owners and visitors
+- **Multi-Website Support**: Manage chats for multiple domains
+- **User-friendly Dashboard**: Clear management of all chat rooms
+- **Responsive Design**: Optimized for desktop and mobile
+- **Easy Integration**: Quick integration into existing websites with a JavaScript snippet
+- **Security**: JWT authentication and data protection
+
+## Technology Stack
+
+- **Frontend**: Next.js 15, React 19, TailwindCSS, Socket.IO Client
+- **Backend**: Express, Socket.IO, Prisma, PostgreSQL
+- **Authentication**: JWT (JSON Web Tokens)
+- **Deployment**: Docker, Docker Compose
+
 ## Development Setup
 
 ### Prerequisites
@@ -137,6 +159,26 @@ npx prisma studio
 - `/backend` - Express backend API and Socket.IO server
   - `/prisma` - Database schema and migrations
   - `/src` - Backend source code
+
+## Data Model
+
+The application uses the following main entities:
+
+- **User**: Administrators who manage websites and chats
+- **Website**: Registered domains for chat integration
+- **ChatRoom**: Individual chat sessions between visitors and administrators
+- **ChatMessage**: Messages within a chat room
+- **ChatParticipant**: Participants in a chat room (visitors or administrators)
+
+## Integration into Your Website
+
+To integrate JustLive.Chat into your website, simply add the following script to your HTML code:
+
+```html
+<script src="http://your-backend-url/embed.js" data-website-id="YOUR_WEBSITE_ID"></script>
+```
+
+Replace `YOUR_WEBSITE_ID` with the ID you receive in the dashboard after registering your website.
 
 ## License
 
