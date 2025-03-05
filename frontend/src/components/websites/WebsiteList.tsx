@@ -187,7 +187,7 @@ function EmbedCustomizer({ websiteId, onCopyEmbedCode }: EmbedCustomizerProps) {
     },
     chatInput: {
       border: "1px solid #e2e8f0",
-      borderRadius: "20px",
+      borderRadius: "8px",
       padding: "8px 16px",
       flexGrow: 1,
       marginRight: "8px",
@@ -197,7 +197,7 @@ function EmbedCustomizer({ websiteId, onCopyEmbedCode }: EmbedCustomizerProps) {
       backgroundColor: selectedColor,
       color: "white",
       border: "none",
-      borderRadius: "50%",
+      borderRadius: "8px",
       width: "36px",
       height: "36px",
       display: "flex",
@@ -480,7 +480,16 @@ function EmbedCustomizer({ websiteId, onCopyEmbedCode }: EmbedCustomizerProps) {
                     {language === "de" ? "Chat mit uns" : "Chat with us"}
                   </span>
                 </div>
-                <button className="text-white text-xs">×</button>
+                <div className="flex items-center">
+                  {/* Burger menu */}
+                  <div className="mr-2 cursor-pointer">
+                    <div className="flex flex-col justify-between h-3 w-4">
+                      <span className="bg-white h-0.5 w-full rounded-sm"></span>
+                      <span className="bg-white h-0.5 w-full rounded-sm"></span>
+                      <span className="bg-white h-0.5 w-full rounded-sm"></span>
+                    </div>
+                  </div>
+                </div>
               </div>
               <div style={chatPreviewStyles.chatBody}>
                 <div className="flex flex-col">
@@ -532,13 +541,13 @@ function EmbedCustomizer({ websiteId, onCopyEmbedCode }: EmbedCustomizerProps) {
                 <button
                   style={{
                     ...chatPreviewStyles.chatSendButton,
-                    width: "28px",
+                    width: "32px",
                     height: "28px",
                   }}
                 >
                   <svg
-                    width="12"
-                    height="12"
+                    width="14"
+                    height="14"
                     viewBox="0 0 24 24"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
