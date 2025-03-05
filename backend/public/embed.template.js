@@ -943,6 +943,26 @@
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
     
+    .justlive-chat-download {
+      background: transparent;
+      color: ${primaryColor};
+      border: 1px solid ${primaryColor};
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 500;
+      margin-top: 10px;
+    }
+    
+    .justlive-chat-download:hover {
+      background: ${primaryColor};
+      color: white;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    
     .justlive-chat-error {
       position: fixed;
       bottom: 20px;
@@ -1485,7 +1505,7 @@
         <div class="justlive-chat-ended-title" style="font-size: 20px; font-weight: 600; margin-bottom: 10px;">${userInitiated ? t.chatEnded : t.agentEndedChat}</div>
         <div class="justlive-chat-ended-message" style="font-size: 15px; margin-bottom: 20px; line-height: 1.4;">${userInitiated ? t.chatEndedDescription : t.agentEndedChatDescription}</div>
         <button class="justlive-chat-restart" style="background-color: ${primaryColor}; font-size: 16px; padding: 12px 24px; border-radius: 8px; font-weight: 500; transition: all 0.2s ease; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">${t.startNewChat}</button>
-        <button class="justlive-chat-download" style="background-color: ${primaryColor}; font-size: 16px; padding: 12px 24px; border-radius: 8px; font-weight: 500; transition: all 0.2s ease; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">${t.downloadTranscript}</button>
+        <button class="justlive-chat-download" style="font-size: 14px; padding: 8px 16px; border-radius: 8px; font-weight: 500; transition: all 0.2s ease;">${t.downloadTranscript}</button>
       `;
       messagesContainer.appendChild(endedEl);
       
