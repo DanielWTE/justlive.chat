@@ -103,7 +103,6 @@
       startNewChat: 'Start a new chat',
       online: 'Online',
       offline: 'Offline',
-      chatDeleted: 'This chat has been deleted.',
       error: 'Error',
       connectionError: 'JustLive Chat: Connection error. Please try again later.',
       reconnectionError: 'JustLive Chat: Reconnection error. Please refresh the page.',
@@ -121,6 +120,8 @@
       team: 'Support Team',
       closeChat: 'Close Chat',
       endChat: 'End Chat',
+      chatDeleted: 'This chat has been deleted.',
+      chatDeletedDescription: 'This chat has been deleted. Please click the button below to start a new chat.',
       chatEnded: 'The chat session has ended.',
       chatEndedDescription: 'The chat session has ended. Please click the button below to start a new chat.',
       agentEndedChat: 'The agent has ended the chat.',
@@ -140,7 +141,6 @@
       startNewChat: 'Neuen Chat starten',
       online: 'Online',
       offline: 'Offline',
-      chatDeleted: 'Dieser Chat wurde gelöscht.',
       error: 'Fehler',
       connectionError: 'JustLive Chat: Verbindungsfehler. Bitte versuchen Sie es später erneut.',
       reconnectionError: 'JustLive Chat: Fehler bei der Wiederverbindung. Bitte aktualisieren Sie die Seite.',
@@ -158,6 +158,8 @@
       team: 'Support Team',
       closeChat: 'Chat schließen',
       endChat: 'Chat beenden',
+      chatDeleted: 'Dieser Chat wurde gelöscht.',
+      chatDeletedDescription: 'Dieser Chat wurde gelöscht. Bitte klicken Sie auf den Button unten, um einen neuen Chat zu starten.',
       chatEnded: 'Der Chat wurde beendet.',
       chatEndedDescription: 'Der Chat wurde beendet. Bitte klicken Sie auf den Button unten, um einen neuen Chat zu starten.',
       agentEndedChat: 'Der Agent hat den Chat beendet.',
@@ -2143,7 +2145,7 @@
         deletedEl.className = 'justlive-chat-ended';
         deletedEl.innerHTML = `
           <div class="justlive-chat-ended-title" style="font-size: 20px; font-weight: 600; margin-bottom: 10px;">${t.chatDeleted}</div>
-          <div class="justlive-chat-ended-message" style="font-size: 15px; margin-bottom: 20px; line-height: 1.4;">${t.agentDeletedChat}</div>
+          <div class="justlive-chat-ended-message" style="font-size: 15px; margin-bottom: 20px; line-height: 1.4;">${t.chatDeletedDescription}</div>
           <button class="justlive-chat-restart" style="background-color: ${primaryColor}; font-size: 16px; padding: 12px 24px; border-radius: 8px; font-weight: 500; transition: all 0.2s ease; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">${t.startNewChat}</button>
         `;
         messagesContainer.appendChild(deletedEl);
