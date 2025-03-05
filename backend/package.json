@@ -29,6 +29,7 @@
     "jsonwebtoken": "^9.0.2",
     "prisma": "^6.4.1",
     "socket.io": "^4.8.1",
+    "terser": "^5.39.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.2"
   },
