@@ -1,6 +1,6 @@
 {
   "name": "justlive.chat",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Live Chat Application",
   "workspaces": [
     "frontend",
