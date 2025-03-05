@@ -100,7 +100,6 @@
       emailRequired: 'Email is required',
       invalidEmail: 'Please enter a valid email',
       skipEmail: 'Skip email input',
-      chatEnded: 'This chat session has ended.',
       startNewChat: 'Start a new chat',
       online: 'Online',
       offline: 'Offline',
@@ -112,8 +111,6 @@
       chatWithUs: 'Chat with us',
       send: 'Send',
       welcomeTitle: 'Welcome to our chat',
-      agentEndedChat: 'The agent has ended the chat.',
-      agentDeletedChat: 'The agent has deleted the chat.',
       reconnecting: 'Reconnecting to chat...',
       reconnected: 'Successfully reconnected to chat.',
       reconnectionFailed: 'Failed to reconnect to chat session. Starting a new chat.',
@@ -121,7 +118,13 @@
       reconnecting: 'Reconnecting to chat...',
       reconnected: 'Successfully reconnected to chat.',
       reconnectionFailed: 'Failed to reconnect to chat session. Please refresh the page to start a new chat.',
-      team: 'Support Team'
+      team: 'Support Team',
+      closeChat: 'Close Chat',
+      endChat: 'End Chat',
+      chatEnded: 'The chat session has ended.',
+      chatEndedDescription: 'The chat session has ended. Please click the button below to start a new chat.',
+      agentEndedChat: 'The agent has ended the chat.',
+      agentEndedChatDescription: 'The agent has ended the chat. Please click the button below to start a new chat.',
     },
     de: {
       connecting: 'Verbindung zum Chat wird hergestellt...',
@@ -134,7 +137,6 @@
       emailRequired: 'E-Mail ist erforderlich',
       invalidEmail: 'Bitte geben Sie eine gültige E-Mail-Adresse ein',
       skipEmail: 'E-Mail-Eingabe überspringen',
-      chatEnded: 'Diese Chat-Sitzung wurde beendet.',
       startNewChat: 'Neuen Chat starten',
       online: 'Online',
       offline: 'Offline',
@@ -146,8 +148,6 @@
       chatWithUs: 'Chatten Sie mit uns',
       send: 'Senden',
       welcomeTitle: 'Willkommen in unserem Chat',
-      agentEndedChat: 'Der Agent hat das Gespräch beendet.',
-      agentDeletedChat: 'Der Agent hat den Chat gelöscht.',
       reconnecting: 'Verbindung zum Chat wird wiederhergestellt...',
       reconnected: 'Erfolgreich wieder mit dem Chat verbunden.',
       reconnectionFailed: 'Verbindung zum Chat konnte nicht wiederhergestellt werden. Ein neuer Chat wird gestartet.',
@@ -155,7 +155,13 @@
       reconnecting: 'Verbindung zum Chat wird wiederhergestellt...',
       reconnected: 'Erfolgreich wieder mit dem Chat verbunden.',
       reconnectionFailed: 'Verbindung zum Chat konnte nicht wiederhergestellt werden. Bitte aktualisieren Sie die Seite, um einen neuen Chat zu starten.',
-      team: 'Support Team'
+      team: 'Support Team',
+      closeChat: 'Chat schließen',
+      endChat: 'Chat beenden',
+      chatEnded: 'Der Chat wurde beendet.',
+      chatEndedDescription: 'Der Chat wurde beendet. Bitte klicken Sie auf den Button unten, um einen neuen Chat zu starten.',
+      agentEndedChat: 'Der Agent hat den Chat beendet.',
+      agentEndedChatDescription: 'Der Agent hat den Chat beendet. Bitte klicken Sie auf den Button unten, um einen neuen Chat zu starten.',
     }
   };
   
@@ -1063,6 +1069,83 @@
       background: ${selectedPreset.hoverBackground};
       transform: translateY(-1px);
     }
+
+    /* Burger menu and dropdown styles */
+    .justlive-chat-menu-button {
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .justlive-chat-menu-button:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+    
+    .justlive-chat-menu-icon {
+      width: 18px;
+      height: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    
+    .justlive-chat-menu-icon span {
+      display: block;
+      height: 2px;
+      width: 100%;
+      background-color: white;
+      border-radius: 2px;
+    }
+    
+    .justlive-chat-dropdown {
+      position: absolute;
+      top: 45px;
+      right: 10px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      z-index: 10;
+      display: none;
+    }
+    
+    .justlive-chat-dropdown.open {
+      display: block;
+      animation: fadeIn 0.2s ease-out;
+    }
+    
+    .justlive-chat-dropdown-item {
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      white-space: nowrap;
+      color: #333;
+      font-size: 14px;
+    }
+    
+    .justlive-chat-dropdown-item:hover {
+      background-color: #f5f5f5;
+    }
+    
+    .justlive-chat-dropdown-item.danger {
+      color: #e53e3e;
+    }
+    
+    .justlive-chat-dropdown-item.danger:hover {
+      background-color: #fff5f5;
+    }
+    
+    .justlive-chat-dropdown-item.hidden {
+      display: none;
+    }
+    
+    .justlive-chat-close {
+      display: none; /* Hide the original close button */
+    }
   `;
   document.head.appendChild(styles);
 
@@ -1169,6 +1252,17 @@
         </div>
       </h3>
       <div class="justlive-chat-close">✕</div>
+      <div class="justlive-chat-menu-button">
+        <div class="justlive-chat-menu-icon">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+      <div class="justlive-chat-dropdown">
+        <div class="justlive-chat-dropdown-item" data-action="close">${t.closeChat || 'Chat schließen'}</div>
+        <div class="justlive-chat-dropdown-item danger hidden" data-action="end">${t.endChat || 'Chat beenden'}</div>
+      </div>
     </div>
     <div class="justlive-chat-messages"></div>
     <div class="justlive-chat-input-container">
@@ -1200,24 +1294,42 @@
     // Variables for tracking state
     let currentRoomId = null;
     let isReconnecting = false;
+    let wasReconnecting = false;
     let reconnected = false;
-    let storedVisitorInfo = null;
+    let storedVisitorInfo = {};
     let chatWasActive = false;
     let storedSessionId = null;
+    
+    // Try to load stored visitor info
+    try {
+      const storedInfo = localStorage.getItem(`justlive-chat-visitor-${websiteId}`);
+      if (storedInfo) {
+        storedVisitorInfo = JSON.parse(storedInfo);
+      }
+    } catch (e) {
+      console.error('Error parsing stored visitor info:', e);
+    }
+    
+    // Get stored room ID from localStorage if available
+    const storedRoomId = localStorage.getItem(`justlive-chat-room-${websiteId}`);
+    if (storedRoomId) {
+      console.log('Found stored room ID:', storedRoomId);
+      currentRoomId = storedRoomId;
+    }
 
     // Then retrieve stored values
-    // Get stored room ID from localStorage if available
-    currentRoomId = localStorage.getItem(`justlivechat_room_${websiteId}`) || null;
-    // Also retrieve visitor info if available
-    storedVisitorInfo = JSON.parse(localStorage.getItem(`justlivechat_visitor_info_${websiteId}`) || 'null');
-    // Check if chat was active before
-    chatWasActive = localStorage.getItem(`justlivechat_chat_active_${websiteId}`) === 'true';
+    // Check if we have an active chat session
+    const chatActive = localStorage.getItem(`justlive-chat-chat-active-${websiteId}`);
+    if (chatActive === 'true') {
+      chatWasActive = true;
+    }
+    
     // Get stored session ID if available
-    storedSessionId = localStorage.getItem(`justlivechat_session_${websiteId}`) || null;
+    storedSessionId = localStorage.getItem(`justlive-chat-session-${websiteId}`);
 
     // Initialize socket with reconnection options
     const socket = io(BACKEND_URL, {
-      auth: { 
+      auth: {
         websiteId,
         reconnectAttempt: !!currentRoomId, // Flag to indicate this is a reconnection attempt
         sessionId: storedSessionId // Send stored session ID if available
@@ -1228,6 +1340,9 @@
       reconnectionDelayMax: 5000,
       timeout: 20000
     });
+    
+    // Initialize socket property to track if we've emitted a join event
+    socket.hasEmittedJoin = false;
 
     let isConnected = false;
     let isChatEnded = false;
@@ -1315,14 +1430,16 @@
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     };
 
-    const showChatEnded = () => {
+    const showChatEnded = (userInitiated = false) => {
       console.log('Showing chat ended message');
       
       // Set chat as ended
       isChatEnded = true;
       currentRoomId = null; // Reset room ID
-      // Remove room ID from localStorage
-      localStorage.removeItem(`justlivechat_room_${websiteId}`);
+      localStorage.removeItem(`justlive-chat-room-${websiteId}`);
+      localStorage.removeItem(`justlive-chat-session-${websiteId}`);
+      localStorage.removeItem(`justlive-chat-chat-active-${websiteId}`);
+      localStorage.removeItem(`justlive-chat-visitor-${websiteId}`);
       
       // Disable input
       input.disabled = true;
@@ -1342,8 +1459,8 @@
       const endedEl = document.createElement('div');
       endedEl.className = 'justlive-chat-ended';
       endedEl.innerHTML = `
-        <div class="justlive-chat-ended-title" style="font-size: 20px; font-weight: 600; margin-bottom: 10px;">${t.chatEnded}</div>
-        <div class="justlive-chat-ended-message" style="font-size: 15px; margin-bottom: 20px; line-height: 1.4;">${t.agentEndedChat}</div>
+        <div class="justlive-chat-ended-title" style="font-size: 20px; font-weight: 600; margin-bottom: 10px;">${userInitiated ? t.chatEnded : t.agentEndedChat}</div>
+        <div class="justlive-chat-ended-message" style="font-size: 15px; margin-bottom: 20px; line-height: 1.4;">${userInitiated ? t.chatEndedDescription : t.agentEndedChatDescription}</div>
         <button class="justlive-chat-restart" style="background-color: ${primaryColor}; font-size: 16px; padding: 12px 24px; border-radius: 8px; font-weight: 500; transition: all 0.2s ease; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">${t.startNewChat}</button>
       `;
       messagesContainer.appendChild(endedEl);
@@ -1553,7 +1670,7 @@
           });
           
           // Speichere Besucherinfo für Reconnection
-          localStorage.setItem(`justlivechat_visitor_info_${websiteId}`, JSON.stringify(visitorInfo));
+          localStorage.setItem(`justlive-chat-visitor-${websiteId}`, JSON.stringify(visitorInfo));
           
           // Fokus auf Input setzen
           input.focus();
@@ -1756,29 +1873,11 @@
         
         socket.emit('chat:join', {
           websiteId,
-          roomId: currentRoomId, // Use stored room ID if available
-          visitorInfo: hasSubmittedInfo ? visitorInfo : undefined
+          visitorInfo
         });
         
-        // Store the message to send once we have a room ID
-        const messageToSend = content;
-        
-        // Set up a one-time event handler for the joined event
-        socket.once('chat:joined', (data) => {
-          console.log('Joined chat room after sending message:', data.roomId);
-          currentRoomId = data.roomId;
-          // Store room ID in localStorage for session persistence
-          localStorage.setItem(`justlivechat_room_${websiteId}`, data.roomId);
-          
-          // Send the message now that we have a room ID
-          setTimeout(() => {
-            socket.emit('chat:message', { 
-              content: messageToSend, 
-              roomId: currentRoomId,
-              visitorInfo: hasSubmittedInfo ? visitorInfo : undefined
-            });
-          }, 500);
-        });
+        // Mark that we've emitted a join event
+        socket.hasEmittedJoin = true;
         
         return;
       }
@@ -1815,41 +1914,51 @@
 
     // Socket event handlers
     socket.on('connect', () => {
-      console.log('Connected to chat server');
+      console.log('Connected to server');
       isConnected = true;
+      isReconnecting = false;
       
-      // Aktiviere den Chat-Button, wenn er deaktiviert war
-      button.style.opacity = '1';
-      button.style.pointerEvents = 'auto';
+      // If we were reconnecting, show a success message
+      if (wasReconnecting) {
+        wasReconnecting = false;
+        addSystemMessage(t.reconnected);
+      }
       
-      // Wenn wir eine aktive Chat-Session haben und Besucherinfo, versuche zu reconnecten
-      if (currentRoomId && chatWasActive && storedVisitorInfo && isConnected) {
-        console.log('Attempting to reconnect to existing chat session');
-        // Wenn der Chat-Button geklickt wurde und das Fenster geöffnet ist
-        if (chatWindow.classList.contains('open')) {
-          attemptReconnection();
+      // If we have a room ID stored, try to rejoin that room
+      if (currentRoomId && !socket.hasEmittedJoin) {
+        console.log('Attempting to rejoin room:', currentRoomId);
+        
+        // Update stored visitor info with current URL and page title
+        if (storedVisitorInfo && Object.keys(storedVisitorInfo).length > 0) {
+          storedVisitorInfo.url = window.location.href;
+          storedVisitorInfo.pageTitle = document.title;
         }
+        
+        // Emit join event with stored room ID
+        socket.emit('chat:join', {
+          websiteId,
+          roomId: storedRoomId,
+          visitorInfo: storedVisitorInfo
+        });
+
+        // Show reconnecting message
+        addSystemMessage(t.reconnecting);
       }
     });
 
     socket.on('chat:joined', (data) => {
+      console.log('Joined chat room:', data.roomId);
+      
+      // Reset the join flag so we can join again if needed
+      socket.hasEmittedJoin = false;
+      
+      // Store the room ID for reconnection
       currentRoomId = data.roomId;
-      reconnected = true;
+      localStorage.setItem(`justlive-chat-room-${websiteId}`, currentRoomId);
       
-      // Store room ID in localStorage for session persistence with new prefix
-      localStorage.setItem(`justlivechat_room_${websiteId}`, data.roomId);
-      
-      // If we have visitor info, store it
-      if (visitorInfo && visitorInfo.name && visitorInfo.email) {
-        localStorage.setItem(`justlivechat_visitor_info_${websiteId}`, JSON.stringify(visitorInfo));
-      }
-      
-      // Mark chat as active
-      localStorage.setItem(`justlivechat_chat_active_${websiteId}`, 'true');
-      
-      // Store session ID if available
-      if (data.sessionId) {
-        localStorage.setItem(`justlivechat_session_${websiteId}`, data.sessionId);
+      // Store visitor info for reconnection if available
+      if (visitorInfo && Object.keys(visitorInfo).length > 0) {
+        localStorage.setItem(`justlive-chat-visitor-${websiteId}`, JSON.stringify(visitorInfo));
       }
       
       // Stelle sicher, dass der Chat aktiv ist
@@ -1880,6 +1989,9 @@
       
       // Frage den Admin-Status ab, um die richtige Nachricht anzuzeigen
       fetchAdminStatus();
+      
+      // Update end chat option visibility
+      updateEndChatOptionVisibility();
     });
 
     socket.on('connect_error', (error) => {
@@ -1904,6 +2016,7 @@
     socket.on('reconnect', () => {
       console.log('Reconnected to server');
       isConnected = true;
+      wasReconnecting = isReconnecting;
       isReconnecting = false;
       
       // Only attempt to rejoin if we were in an active chat
@@ -1915,6 +2028,9 @@
           visitorInfo: storedVisitorInfo,
           isReconnect: true
         });
+        
+        // Mark that we've emitted a join event
+        socket.hasEmittedJoin = true;
       }
     });
     
@@ -1939,7 +2055,8 @@
       }
     });
 
-    socket.on('chat:message', (message) => {
+    // Funktion zum Hinzufügen einer Nachricht zum Chat
+    const addMessage = (message) => {
       // Clear typing indicator when message arrives
       if (!message.isVisitor) {
         agentTyping = false;
@@ -1962,7 +2079,10 @@
       // Create timestamp element
       const timeElement = document.createElement('div');
       timeElement.className = 'justlive-chat-message-time';
-      timeElement.textContent = formatTime(new Date());
+      
+      // Verwende das Datum aus der Nachricht, wenn vorhanden, sonst das aktuelle Datum
+      const messageDate = message.createdAt ? new Date(message.createdAt) : new Date();
+      timeElement.textContent = formatTime(messageDate);
       
       // Add message and timestamp to wrapper
       wrapperElement.appendChild(messageElement);
@@ -1984,14 +2104,22 @@
       
       // Scroll to bottom
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
-      
-      // Show notification if message is from admin and chat window is minimized
-      if (!message.isVisitor && !chatWindow.classList.contains('open')) {
-        showMiniPreview(message.content);
-      }
+    };
+
+    socket.on('chat:message', (message) => {
+      addMessage(message);
     });
 
     socket.on('chat:error', (error) => {
+      if (error.message === 'Invalid room') {
+        console.log('Invalid room, deleting room ID from localStorage');
+        localStorage.removeItem(`justlive-chat-room-${websiteId}`);
+        localStorage.removeItem(`justlive-chat-session-${websiteId}`);
+        localStorage.removeItem(`justlive-chat-chat-active-${websiteId}`);
+        localStorage.removeItem(`justlive-chat-visitor-${websiteId}`);
+        restartChat();
+        return;
+      }
       console.error('JustLive Chat: Chat error:', error.message);
       showError(error.message, t.error);
     });
@@ -2001,6 +2129,7 @@
       // Only show ended message if the chat hasn't already been marked as ended
       if (!isChatEnded) {
         showChatEnded();
+        updateEndChatOptionVisibility();
       }
     });
 
@@ -2026,8 +2155,10 @@
         messagesContainer.innerHTML = '';
 
         // Remove room ID from localStorage
-        localStorage.removeItem(`justlivechat_room_${websiteId}`);
-        
+        localStorage.removeItem(`justlive-chat-room-${websiteId}`);
+        localStorage.removeItem(`justlive-chat-visitor-${websiteId}`);
+        localStorage.removeItem(`justlive-chat-chat-active-${websiteId}`);
+        localStorage.removeItem(`justlive-chat-session-${websiteId}`);
         // Reset state
         currentRoomId = null;
         isChatEnded = true;
@@ -2080,36 +2211,23 @@
         // socket.emit('chat:visitor:leave', { roomId: currentRoomId });
         
         // SendBeacon für zuverlässige Übertragung während des Entladens der Seite
-        if (navigator.sendBeacon) {
-          const data = JSON.stringify({ roomId: currentRoomId });
-          const blob = new Blob([data], { type: 'application/json' });
-          navigator.sendBeacon(`${BACKEND_URL}/chat/visitor-left`, blob);
-        } else {
-          // Fallback für Browser ohne sendBeacon-Unterstützung
-          try {
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', `${BACKEND_URL}/chat/visitor-left`, false); // Synchroner Aufruf
-            xhr.setRequestHeader('Content-Type', 'application/json');
-            xhr.send(JSON.stringify({ roomId: currentRoomId }));
-          } catch (e) {
-            console.error('JustLive Chat: Failed to send visitor-left notification:', e);
-          }
-        }
+        // if (navigator.sendBeacon) {
+        //   const data = JSON.stringify({ roomId: currentRoomId });
+        //   const blob = new Blob([data], { type: 'application/json' });
+        //   navigator.sendBeacon(`${BACKEND_URL}/chat/visitor-left`, blob);
+        // } else {
+        //   // Fallback für Browser ohne sendBeacon-Unterstützung
+        //   try {
+        //     const xhr = new XMLHttpRequest();
+        //     xhr.open('POST', `${BACKEND_URL}/chat/visitor-left`, false); // Synchroner Aufruf
+        //     xhr.setRequestHeader('Content-Type', 'application/json');
+        //     xhr.send(JSON.stringify({ roomId: currentRoomId }));
+        //   } catch (e) {
+        //     console.error('JustLive Chat: Failed to send visitor-left notification:', e);
+        //   }
+        // }
       }
     });
-
-    // Function to request admin status
-    const requestAdminStatus = () => {
-      // Only request if we're connected
-      if (socket.connected) {
-        // Use fetchAdminStatus to get the admin status and handle the response
-        fetchAdminStatus((data) => {
-          console.log('Admin status received:', data);
-        });
-      } else {
-        console.log('Socket not connected, cannot request admin status');
-      }
-    };
 
     // Function to fetch admin status
     const fetchAdminStatus = (callback) => {
@@ -2236,10 +2354,10 @@
           if (!reconnected) {
             addSystemMessage(t.reconnectionFailed);
             currentRoomId = null;
-            localStorage.removeItem(`justlivechat_room_${websiteId}`);
-            localStorage.removeItem(`justlivechat_visitor_info_${websiteId}`);
-            localStorage.removeItem(`justlivechat_chat_active_${websiteId}`);
-            localStorage.removeItem(`justlivechat_session_${websiteId}`);
+            localStorage.removeItem(`justlive-chat-room-${websiteId}`);
+            localStorage.removeItem(`justlive-chat-visitor-${websiteId}`);
+            localStorage.removeItem(`justlive-chat-chat-active-${websiteId}`);
+            localStorage.removeItem(`justlive-chat-session-${websiteId}`);
             
             // Show welcome message again
             showWelcomeMessage();
@@ -2252,6 +2370,80 @@
           reconnected = true;
           addSystemMessage(t.reconnected);
         });
+      }
+    };
+
+    // Burger menu functionality
+    const menuButton = chatWindow.querySelector('.justlive-chat-menu-button');
+    const dropdown = chatWindow.querySelector('.justlive-chat-dropdown');
+    
+    // Toggle dropdown when clicking the menu button
+    menuButton.addEventListener('click', (e) => {
+      e.stopPropagation();
+      updateEndChatOptionVisibility();
+      dropdown.classList.toggle('open');
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', () => {
+      dropdown.classList.remove('open');
+    });
+    
+    // Prevent dropdown from closing when clicking inside it
+    dropdown.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+    
+    // Handle dropdown item clicks
+    dropdown.querySelectorAll('.justlive-chat-dropdown-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const action = item.getAttribute('data-action');
+        
+        if (action === 'close') {
+          // Just close the chat window (same as the original X button)
+          chatWindow.classList.remove('open');
+        } else if (action === 'end') {
+          // End the chat session and report visitor left
+          if (currentRoomId && !isChatEnded && !visitorLeftReported) {
+            visitorLeftReported = true;
+            
+            // Send visitor left event
+            if (socket.connected) {
+              socket.emit('chat:visitor:leave', { roomId: currentRoomId });
+            }
+            
+            // Clear local storage
+            localStorage.removeItem(`justlive-chat-room-${websiteId}`);
+            localStorage.removeItem(`justlive-chat-visitor-${websiteId}`);
+            localStorage.removeItem(`justlive-chat-chat-active-${websiteId}`);
+            localStorage.removeItem(`justlive-chat-session-${websiteId}`);
+            
+            // Show chat ended message
+            showChatEnded(true);
+            
+            // Close the chat window
+            chatWindow.classList.remove('open');
+          }
+        }
+        
+        // Close the dropdown
+        dropdown.classList.remove('open');
+      });
+    });
+
+    // Keep the original close button functionality for backward compatibility
+    chatWindow.querySelector('.justlive-chat-close').addEventListener('click', (e) => {
+      e.stopPropagation();
+      chatWindow.classList.remove('open');
+    });
+
+    // Function to update the end chat option visibility
+    const updateEndChatOptionVisibility = () => {
+      const endChatOption = dropdown.querySelector('[data-action="end"]');
+      if (currentRoomId && !isChatEnded) {
+        endChatOption.classList.remove('hidden');
+      } else {
+        endChatOption.classList.add('hidden');
       }
     };
   };

@@ -264,8 +264,27 @@ export const handleChatEvents = (
           }
         }
 
-        // Emit joined event with sessionId for client to store
-        socket.emit('chat:joined', { roomId: currentRoomIdString });
+        // Send chat history for reconnection
+        const chatHistory = await getChatMessagesByRoomId(currentRoomIdString);
+        console.log(`Sending chat history for room ${currentRoomIdString}: ${chatHistory.length} messages`);
+        
+        // Send each message to the reconnecting client
+        for (const message of chatHistory) {
+          socket.emit('chat:message', {
+            id: message.id,
+            content: message.content,
+            roomId: message.roomId,
+            createdAt: message.createdAt,
+            isVisitor: message.isVisitor,
+            isRead: message.isRead,
+            readAt: message.readAt || undefined
+          });
+        }
+        
+        // Emit joined event with session ID
+        socket.emit('chat:joined', {
+          roomId: currentRoomIdString
+        });
         
         console.log('Successfully reconnected to room:', { 
           socketId: socket.id, 
@@ -601,8 +620,8 @@ export const handleChatEvents = (
 
   // Handle visitor leaving the page
   const handleVisitorLeave = async (data: { roomId: string }) => {
+    const { roomId } = data;
     try {
-      const { roomId } = data;
       console.log(`Handling visitor leave for room ${roomId}`);
       
       // Update participant status
@@ -621,11 +640,10 @@ export const handleChatEvents = (
       // Update room status to ended
       await updateChatRoomStatus(roomId, 'ended');
       
-      // Check if a "Visitor left" message already exists
       const existingLeaveMessage = await prisma.chatMessage.findFirst({
         where: {
           roomId,
-          content: 'Visitor left the chat (closed the page)',
+          content: 'Visitor ended the chat',
           isSystem: true
         }
       });
@@ -636,7 +654,7 @@ export const handleChatEvents = (
         // Add system message about visitor leaving
         systemMessage = await prisma.chatMessage.create({
           data: {
-            content: 'Visitor left the chat (closed the page)',
+            content: 'Visitor ended the chat',
             isVisitor: false,
             isSystem: true,
             roomId: roomId,
@@ -660,7 +678,7 @@ export const handleChatEvents = (
       // Emit visitor left event with the system message
       io.to(roomId).emit('chat:visitor:left', { 
         roomId,
-        message: 'Visitor left the chat',
+        message: 'Visitor ended the chat',
         systemMessage: formattedMessage
       });
       
@@ -668,7 +686,7 @@ export const handleChatEvents = (
       io.to(roomId).emit('chat:session:end', { roomId });
       
       console.log(`Successfully processed visitor leave for room ${roomId}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Visitor leave error:', error);
     }
   };
