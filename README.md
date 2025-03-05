@@ -2,8 +2,6 @@
 
 A live chat application with a frontend built with Next.js and a backend using Express and Prisma.
 
-![JustLive.Chat Logo](https://justlive.chat/logo.png)
-
 ## Overview
 
 JustLive.Chat is a modern live chat solution that enables website owners to communicate with their visitors in real-time. The application offers simple integration into existing websites and a user-friendly interface for administrators and visitors.
