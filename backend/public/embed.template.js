@@ -2391,9 +2391,6 @@
             
             // Show chat ended message
             showChatEnded(true);
-            
-            // Close the chat window
-            chatWindow.classList.remove('open');
           }
         }
         
@@ -2557,6 +2554,11 @@
               color: #666;
               font-size: 14px;
             }
+            .transcript-info-website {
+              font-size: 12px;
+              color: #666;
+              margin-top: 5px;
+            }
             .clearfix::after {
               content: "";
               clear: both;
@@ -2574,6 +2576,7 @@
               hour: '2-digit',
               minute: '2-digit'
             })}
+            <div class="transcript-info-website">${window.location.hostname}</div>
           </div>
           <div class="messages-container">
       `;
