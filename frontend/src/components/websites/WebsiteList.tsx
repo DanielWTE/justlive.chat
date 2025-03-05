@@ -68,6 +68,13 @@ const LANGUAGES = [
   { value: "de", label: "German (Deutsch)" },
 ];
 
+// Size options available in the embed script
+const SIZE_PRESETS = [
+  { value: "small", label: "Small", width: 320, height: 450 },
+  { value: "medium", label: "Medium", width: 320, height: 500 },
+  { value: "large", label: "Large", width: 360, height: 600 },
+];
+
 interface EmbedCustomizerProps {
   websiteId: string;
   onCopyEmbedCode: (code: string) => void;
@@ -76,6 +83,7 @@ interface EmbedCustomizerProps {
 function EmbedCustomizer({ websiteId, onCopyEmbedCode }: EmbedCustomizerProps) {
   const [colorPreset, setColorPreset] = useState("blue");
   const [language, setLanguage] = useState("auto");
+  const [size, setSize] = useState("medium");
   const [debug, setDebug] = useState(false);
   const [copying, setCopying] = useState(false);
   const [activeTab, setActiveTab] = useState("customize");
@@ -92,6 +100,10 @@ function EmbedCustomizer({ websiteId, onCopyEmbedCode }: EmbedCustomizerProps) {
 
     if (language !== "auto") {
       embedUrl += `&language=${language}`;
+    }
+
+    if (size !== "medium") {
+      embedUrl += `&size=${size}`;
     }
 
     if (debug) {
@@ -131,6 +143,10 @@ function EmbedCustomizer({ websiteId, onCopyEmbedCode }: EmbedCustomizerProps) {
   const selectedColor =
     COLOR_PRESETS.find((p) => p.value === colorPreset)?.color || "#1E88E5";
 
+  // Get selected size dimensions
+  const selectedSizePreset =
+    SIZE_PRESETS.find((s) => s.value === size) || SIZE_PRESETS[1];
+
   // Chat widget preview styles based on selected options
   const chatPreviewStyles = {
     chatButton: {
@@ -158,8 +174,8 @@ function EmbedCustomizer({ websiteId, onCopyEmbedCode }: EmbedCustomizerProps) {
       border: "1px solid #e2e8f0",
       borderRadius: "12px",
       overflow: "hidden",
-      width: "300px",
-      height: "400px",
+      width: `${selectedSizePreset.width}px`,
+      height: `${selectedSizePreset.height}px`,
       display: "flex",
       flexDirection: "column" as const,
       boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
@@ -198,19 +214,21 @@ function EmbedCustomizer({ websiteId, onCopyEmbedCode }: EmbedCustomizerProps) {
       color: "white",
       border: "none",
       borderRadius: "8px",
-      width: "36px",
-      height: "36px",
+      width: "60px",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
       cursor: "pointer",
+      fontSize: "12px",
+      fontWeight: "700",
+      padding: "8px 12px",
     },
     message: {
       padding: "8px 12px",
       borderRadius: "12px",
       maxWidth: "80%",
       marginBottom: "8px",
-      fontSize: "14px",
+      fontSize: "12px",
     },
     userMessage: {
       backgroundColor: selectedColor,
@@ -331,6 +349,46 @@ function EmbedCustomizer({ websiteId, onCopyEmbedCode }: EmbedCustomizerProps) {
                         className="text-xs"
                       >
                         {lang.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Size */}
+              <div className="space-y-1.5">
+                <div className="flex items-center space-x-1">
+                  <Label htmlFor={`size-${websiteId}`} className="text-xs">
+                    Widget Size
+                  </Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent side="left">
+                        <p className="w-[180px] text-xs">
+                          Choose the size of your chat widget.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <Select value={size} onValueChange={setSize}>
+                  <SelectTrigger
+                    id={`size-${websiteId}`}
+                    className="w-full h-8 text-xs"
+                  >
+                    <SelectValue placeholder="Medium (Default)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SIZE_PRESETS.map((sizeOption) => (
+                      <SelectItem
+                        key={sizeOption.value}
+                        value={sizeOption.value}
+                        className="text-xs"
+                      >
+                        {sizeOption.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -468,17 +526,20 @@ function EmbedCustomizer({ websiteId, onCopyEmbedCode }: EmbedCustomizerProps) {
             <div
               style={{
                 ...chatPreviewStyles.chatWindow,
-                width: "240px",
-                height: "320px",
-                marginBottom: "12px",
               }}
             >
               <div style={chatPreviewStyles.chatHeader}>
-                <div className="flex items-center">
-                  <MessageSquare className="h-4 w-4 mr-1.5" />
-                  <span className="text-xs">
-                    {language === "de" ? "Chat mit uns" : "Chat with us"}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold">
+                    {language === "de" ? "Chatten Sie mit uns" : "Chat with us"}
                   </span>
+                  {/* badge with Online and dot */}
+                  <div className="flex items-center gap-1 rounded-full bg-[#dcfce7] text-[#22c55e] px-2 py-1">
+                    <span className="w-2 h-2 bg-[#22c55e] rounded-full"></span>
+                    <span className="text-xs">
+                      {language === "de" ? "Online" : "Online"}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex items-center">
                   {/* Burger menu */}
@@ -541,32 +602,9 @@ function EmbedCustomizer({ websiteId, onCopyEmbedCode }: EmbedCustomizerProps) {
                 <button
                   style={{
                     ...chatPreviewStyles.chatSendButton,
-                    width: "32px",
-                    height: "28px",
                   }}
                 >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M22 2L11 13"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M22 2L15 22L11 13L2 9L22 2Z"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                  {language === "de" ? "Senden" : "Send"}
                 </button>
               </div>
             </div>

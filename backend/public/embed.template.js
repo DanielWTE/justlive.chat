@@ -7,6 +7,7 @@
    * - debug: Enable debug mode (optional, default: false)
    * - language: Language code (optional, default: browser language, supported: 'en', 'de')
    * - colorPreset: Color preset name (optional, default: 'blue')
+   * - size: Widget size (optional, default: 'medium', supported: 'small', 'medium', 'large')
    * 
    * Available color presets:
    * - blue (default): Blue theme with matching pulse animation
@@ -16,14 +17,20 @@
    * - orange: Orange theme with matching pulse animation
    * - dark: Dark theme with matching pulse animation
    * 
+   * Available size options:
+   * - small: Compact chat window
+   * - medium (default): Standard chat window
+   * - large: Expanded chat window
+   * 
    * Usage:
-   * <script src="https://api.justlive.chat/embed.js?id=YOUR_WEBSITE_ID&colorPreset=blue"></script>
+   * <script src="https://api.justlive.chat/embed.js?id=YOUR_WEBSITE_ID&colorPreset=blue&size=medium"></script>
    * 
    * JavaScript API:
    * - JustLiveChat.getColorPresets(): Returns array of available color preset names
    * - JustLiveChat.setColorPreset(presetName): Changes the color preset
    * - JustLiveChat.setLanguage(language): Changes the language ('en' or 'de')
    * - JustLiveChat.toggleDebug(enable): Toggles debug mode
+   * - JustLiveChat.setSize(size): Changes the widget size ('small', 'medium', 'large')
    */
 
   // Configuration
@@ -75,9 +82,29 @@
     }
   };
   
+  // Define size presets for the chat window
+  const SIZE_PRESETS = {
+    small: {
+      width: 320,
+      height: 450
+    },
+    medium: {
+      width: 320,
+      height: 500
+    },
+    large: {
+      width: 360,
+      height: 600
+    }
+  };
+  
   // Get preset name from script tag or use default (blue)
   const presetName = scriptUrl.searchParams.get('colorPreset') || 'blue';
   const selectedPreset = COLOR_PRESETS[presetName] || COLOR_PRESETS.blue;
+  
+  // Get size from script tag or use default (medium)
+  const sizeName = scriptUrl.searchParams.get('size') || 'medium';
+  const selectedSize = SIZE_PRESETS[sizeName] || SIZE_PRESETS.medium;
   
   // Get primary color from the selected preset
   const primaryColor = selectedPreset.primary;
@@ -374,6 +401,30 @@
     console.log(`JustLive Chat: Color preset changed to ${presetName}`);
   };
   
+  // Function to get available size options
+  window.JustLiveChat.getSizes = () => {
+    return Object.keys(SIZE_PRESETS);
+  };
+  
+  // Function to change widget size
+  window.JustLiveChat.setSize = (size) => {
+    if (!SIZE_PRESETS[size]) {
+      console.error(`JustLive Chat: Invalid size "${size}". Available sizes: ${Object.keys(SIZE_PRESETS).join(', ')}`);
+      return false;
+    }
+    
+    const selectedSize = SIZE_PRESETS[size];
+    const chatWindow = document.querySelector('.justlive-chat-window');
+    
+    if (chatWindow) {
+      chatWindow.style.width = `${selectedSize.width}px`;
+      chatWindow.style.height = `${selectedSize.height}px`;
+      console.log(`JustLive Chat: Size changed to ${size}`);
+    }
+    
+    return true;
+  };
+  
   if (!websiteId) {
     console.error('JustLive Chat: Missing website ID');
     return;
@@ -508,8 +559,8 @@
       position: absolute;
       bottom: 80px;
       right: 0;
-      width: 320px;
-      height: 450px;
+      width: ${selectedSize.width}px;
+      height: ${selectedSize.height}px;
       background: white;
       border-radius: 12px;
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
