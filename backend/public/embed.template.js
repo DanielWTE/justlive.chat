@@ -1356,6 +1356,18 @@
     };
     let hasSubmittedInfo = false;
 
+    // If we have stored visitor info, use it
+    if (storedVisitorInfo && Object.keys(storedVisitorInfo).length > 0) {
+      visitorInfo = storedVisitorInfo;
+      // Set hasSubmittedInfo to true if we have stored visitor info
+      hasSubmittedInfo = true;
+    }
+
+    // If we have an active chat session, set hasSubmittedInfo to true
+    if (currentRoomId && chatWasActive) {
+      hasSubmittedInfo = true;
+    }
+
     // Variable, um zu verfolgen, ob der Besucher bereits als "verlassen" gemeldet wurde
     let visitorLeftReported = false;
 
@@ -1553,6 +1565,12 @@
 
     // Show welcome message with start button
     const showWelcomeMessage = () => {
+      // Skip welcome message if we have an active chat session
+      if (currentRoomId && !isChatEnded && chatWasActive) {
+        console.log('Skipping welcome message due to active chat session');
+        return skipWelcomeAndEmailOnReconnect();
+      }
+      
       console.log('Showing welcome message');
       messagesContainer.innerHTML = '';
       
@@ -1589,6 +1607,12 @@
     
     // Show user info form
     const showUserInfoForm = () => {
+      // Skip user info form if we have an active chat session
+      if (currentRoomId && !isChatEnded && chatWasActive) {
+        console.log('Skipping user info form due to active chat session');
+        return skipWelcomeAndEmailOnReconnect();
+      }
+      
       console.log('Showing user info form');
       messagesContainer.innerHTML = '';
       
@@ -1741,14 +1765,12 @@
       } else {
         chatWindow.classList.add('open');
         
-        // Wenn wir eine aktive Chat-Session haben und Besucherinfo, versuche zu reconnecten
-        if (currentRoomId && chatWasActive && storedVisitorInfo && isConnected) {
-          console.log('Chat window reopened with active session - no reconnection needed');
-          // Scroll to bottom when opening chat with existing session
-          messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        } else if (!hasSubmittedInfo) {
-          // Wenn keine Besucherinfo vorhanden ist, zeige Welcome-Message
-          showWelcomeMessage();
+        // Try to skip welcome and email if we have an active chat
+        if (!skipWelcomeAndEmailOnReconnect()) {
+          // If we couldn't skip (no active chat), show welcome message if needed
+          if (!hasSubmittedInfo) {
+            showWelcomeMessage();
+          }
         }
         
         // Scroll to bottom when opening chat
@@ -1866,15 +1888,27 @@
           storedVisitorInfo.pageTitle = document.title;
         }
         
+        // Set hasSubmittedInfo to true to skip the email form on reconnect
+        hasSubmittedInfo = true;
+        
         // Emit join event with stored room ID
         socket.emit('chat:join', {
           websiteId,
-          roomId: storedRoomId,
-          visitorInfo: storedVisitorInfo
+          roomId: currentRoomId,
+          visitorInfo: storedVisitorInfo,
+          isReconnect: true
         });
 
-        // Show reconnecting message
-        addSystemMessage(t.reconnecting);
+        // Mark that we've emitted a join event
+        socket.hasEmittedJoin = true;
+        
+        // Set chat as active
+        localStorage.setItem(`justlive-chat-chat-active-${websiteId}`, 'true');
+        
+        // Show reconnecting message only if chat window is open
+        if (chatWindow.classList.contains('open')) {
+          addSystemMessage(t.reconnecting);
+        }
       }
     });
 
@@ -1899,6 +1933,9 @@
       sendButton.disabled = false;
       isConnected = true;
       
+      // Set hasSubmittedInfo to true to skip the email form on reconnect
+      hasSubmittedInfo = true;
+      
       // Stelle sicher, dass der Chat-Container leer ist, wenn wir einen neuen Chat starten
       if (messagesContainer.children.length === 0) {
         addTimestamp();
@@ -1907,6 +1944,7 @@
       // Enable input if it was disabled
       input.disabled = false;
       sendButton.disabled = false;
+      inputContainer.style.display = 'flex';
       
       // Ersetze die "Verbindung wird hergestellt..." Nachricht mit dem aktuellen Admin-Status
       // Finde die letzte Systemnachricht, die "Verbindung zum Chat wird hergestellt..." enthält
@@ -2339,6 +2377,49 @@
       } else {
         endChatOption.classList.add('hidden');
       }
+    };
+
+    // Function to skip / remove welcome message and email input after page reload / reconnect
+    // when there is a currentRoomId and !isChatEnded
+    const skipWelcomeAndEmailOnReconnect = () => {
+      // Check if we have an active chat session and it's not ended
+      if (currentRoomId && !isChatEnded && chatWasActive) {
+        console.log('Skipping welcome message and email input on reconnect');
+        
+        // Clear any welcome message or email form
+        messagesContainer.innerHTML = '';
+        
+        // Enable chat input
+        input.disabled = false;
+        sendButton.disabled = false;
+        inputContainer.style.display = 'flex';
+        
+        // Set hasSubmittedInfo to true to skip the email form
+        hasSubmittedInfo = true;
+        
+        // Use stored visitor info if available
+        if (storedVisitorInfo && Object.keys(storedVisitorInfo).length > 0) {
+          visitorInfo = storedVisitorInfo;
+        }
+        
+        // Emit join event with stored room ID
+        socket.emit('chat:join', {
+          websiteId,
+          roomId: currentRoomId,
+          visitorInfo: visitorInfo,
+          isReconnect: true
+        });
+        
+        // Mark that we've emitted a join event
+        socket.hasEmittedJoin = true;
+        
+        // Set chat as active
+        localStorage.setItem(`justlive-chat-chat-active-${websiteId}`, 'true');
+        
+        return true;
+      }
+      
+      return false;
     };
   };
 
