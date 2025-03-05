@@ -18,14 +18,12 @@ import { authMiddleware } from "./middleware/auth";
 import { socketAuth } from "./socket/auth";
 import { handleChatEvents } from "./socket/chat";
 import { ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData } from "./socket/events";
-import { PrismaClient } from "@prisma/client";
 import usersRouter from './api/users';
 
 dotenv.config();
 
 const app = express();
 const httpServer = createServer(app);
-const prisma = new PrismaClient();
 
 // Enhanced security configuration for Socket.IO
 const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(httpServer, {
