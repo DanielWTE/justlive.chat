@@ -120,6 +120,10 @@
       team: 'Support Team',
       closeChat: 'Close Chat',
       endChat: 'End Chat',
+      downloadTranscript: 'Download Transcript',
+      chatTranscript: 'Chat Transcript',
+      visitor: 'Visitor',
+      agent: 'Agent',
       chatDeleted: 'This chat has been deleted.',
       chatDeletedDescription: 'This chat has been deleted. Please click the button below to start a new chat.',
       chatEnded: 'The chat session has ended.',
@@ -158,6 +162,10 @@
       team: 'Support Team',
       closeChat: 'Chat schließen',
       endChat: 'Chat beenden',
+      downloadTranscript: 'Transkript herunterladen',
+      chatTranscript: 'Chat-Transkript',
+      visitor: 'Besucher',
+      agent: 'Mitarbeiter',
       chatDeleted: 'Dieser Chat wurde gelöscht.',
       chatDeletedDescription: 'Dieser Chat wurde gelöscht. Bitte klicken Sie auf den Button unten, um einen neuen Chat zu starten.',
       chatEnded: 'Der Chat wurde beendet.',
@@ -1263,6 +1271,7 @@
       </div>
       <div class="justlive-chat-dropdown">
         <div class="justlive-chat-dropdown-item" data-action="close">${t.closeChat || 'Chat schließen'}</div>
+        <div class="justlive-chat-dropdown-item" data-action="download">${t.downloadTranscript || 'Transkript herunterladen'}</div>
         <div class="justlive-chat-dropdown-item danger hidden" data-action="end">${t.endChat || 'Chat beenden'}</div>
       </div>
     </div>
@@ -1476,6 +1485,7 @@
         <div class="justlive-chat-ended-title" style="font-size: 20px; font-weight: 600; margin-bottom: 10px;">${userInitiated ? t.chatEnded : t.agentEndedChat}</div>
         <div class="justlive-chat-ended-message" style="font-size: 15px; margin-bottom: 20px; line-height: 1.4;">${userInitiated ? t.chatEndedDescription : t.agentEndedChatDescription}</div>
         <button class="justlive-chat-restart" style="background-color: ${primaryColor}; font-size: 16px; padding: 12px 24px; border-radius: 8px; font-weight: 500; transition: all 0.2s ease; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">${t.startNewChat}</button>
+        <button class="justlive-chat-download" style="background-color: ${primaryColor}; font-size: 16px; padding: 12px 24px; border-radius: 8px; font-weight: 500; transition: all 0.2s ease; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">${t.downloadTranscript}</button>
       `;
       messagesContainer.appendChild(endedEl);
       
@@ -1486,6 +1496,10 @@
       const restartButton = endedEl.querySelector('.justlive-chat-restart');
       if (restartButton) {
         restartButton.addEventListener('click', restartChat);
+      }
+      const downloadButton = endedEl.querySelector('.justlive-chat-download');
+      if (downloadButton) {
+        downloadButton.addEventListener('click', downloadTranscript);
       }
     };
 
@@ -2336,6 +2350,9 @@
         if (action === 'close') {
           // Just close the chat window (same as the original X button)
           chatWindow.classList.remove('open');
+        } else if (action === 'download') {
+          // Download chat transcript
+          downloadTranscript();
         } else if (action === 'end') {
           // End the chat session and report visitor left
           if (currentRoomId && !isChatEnded && !visitorLeftReported) {
@@ -2374,10 +2391,13 @@
     // Function to update the end chat option visibility
     const updateEndChatOptionVisibility = () => {
       const endChatOption = dropdown.querySelector('[data-action="end"]');
+      const downloadTranscriptOption = dropdown.querySelector('[data-action="download"]');
       if (currentRoomId && !isChatEnded) {
         endChatOption.classList.remove('hidden');
+        downloadTranscriptOption.classList.remove('hidden');
       } else {
         endChatOption.classList.add('hidden');
+        downloadTranscriptOption.classList.add('hidden');
       }
     };
 
@@ -2423,6 +2443,170 @@
       
       return false;
     };
+
+    // Function to download chat transcript
+    const downloadTranscript = () => {
+      // Get all message elements
+      const messageWrappers = messagesContainer.querySelectorAll('.justlive-chat-message-wrapper');
+      
+      if (messageWrappers.length === 0) {
+        // No messages to download
+        return;
+      }
+      
+      // Get the current color preset
+      const currentPreset = COLOR_PRESETS[presetName] || COLOR_PRESETS.blue;
+      const primaryColor = currentPreset.primary;
+      
+      // Create HTML content for transcript
+      let htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>${t.chatTranscript || 'Chat Transcript'}</title>
+          <style>
+            body { 
+              font-family: Arial, sans-serif; 
+              max-width: 800px; 
+              margin: 0 auto; 
+              padding: 20px; 
+              color: #333;
+            }
+            h1 { 
+              text-align: center; 
+              margin-bottom: 30px; 
+              color: ${primaryColor}; 
+              border-bottom: 2px solid ${primaryColor}; 
+              padding-bottom: 10px;
+            }
+            .message { 
+              margin-bottom: 20px; 
+              clear: both;
+            }
+            .visitor { 
+              float: right; 
+              text-align: right; 
+              max-width: 80%;
+            }
+            .agent { 
+              float: left; 
+              text-align: left; 
+              max-width: 80%;
+            }
+            .sender {
+              font-weight: bold;
+              margin-bottom: 5px;
+              color: ${primaryColor};
+            }
+            .content { 
+              display: inline-block; 
+              padding: 12px 16px; 
+              border-radius: 12px; 
+              word-wrap: break-word;
+              box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            }
+            .visitor .content { 
+              background-color: ${primaryColor}; 
+              color: ${currentPreset.textColor}; 
+              border-bottom-right-radius: 0;
+            }
+            .agent .content { 
+              background-color: #f0f0f0; 
+              color: #333; 
+              border-bottom-left-radius: 0;
+            }
+            .time { 
+              font-size: 12px; 
+              color: #888; 
+              margin-top: 5px; 
+              clear: both;
+            }
+            .system-message { 
+              text-align: center; 
+              margin: 20px 0; 
+              font-style: italic; 
+              color: #888; 
+              background-color: #f9f9f9;
+              padding: 10px;
+              border-radius: 8px;
+            }
+            .transcript-info {
+              text-align: center;
+              margin-bottom: 30px;
+              color: #666;
+              font-size: 14px;
+            }
+            .clearfix::after {
+              content: "";
+              clear: both;
+              display: table;
+            }
+          </style>
+        </head>
+        <body>
+          <h1>${t.chatTranscript || 'Chat Transcript'}</h1>
+          <div class="transcript-info">
+            ${new Date().toLocaleString(isGerman ? 'de-DE' : 'en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            })}
+          </div>
+          <div class="messages-container">
+      `;
+      
+      // Add each message to the transcript
+      messageWrappers.forEach(wrapper => {
+        const isVisitor = wrapper.classList.contains('visitor');
+        const messageElement = wrapper.querySelector('.justlive-chat-message');
+        const timeElement = wrapper.querySelector('.justlive-chat-message-time');
+        
+        if (messageElement && timeElement) {
+          const messageContent = messageElement.textContent;
+          const messageTime = timeElement.textContent;
+          const senderType = isVisitor ? (t.visitor || 'Visitor') : (t.agent || 'Agent');
+          
+          htmlContent += `
+            <div class="message ${isVisitor ? 'visitor' : 'agent'} clearfix">
+              <div class="sender">${senderType}</div>
+              <div class="content">${messageContent}</div>
+              <div class="time">${messageTime}</div>
+            </div>
+          `;
+        }
+      });
+      
+      // Close HTML tags
+      htmlContent += `
+          </div>
+        </body>
+        </html>
+      `;
+      
+      // Create a Blob with the HTML content
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      
+      // Create a download link
+      const downloadLink = document.createElement('a');
+      downloadLink.href = URL.createObjectURL(blob);
+      
+      // Generate filename with current date and time
+      const now = new Date();
+      const dateStr = now.toISOString().slice(0, 10);
+      const timeStr = now.toTimeString().slice(0, 8).replace(/:/g, '-');
+      downloadLink.download = `chat-transcript-${dateStr}-${timeStr}.html`;
+      
+      // Trigger download
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      
+      // Close dropdown after download
+      dropdown.classList.remove('open');
+    };
   };
 
   document.head.appendChild(script);
@@ -2432,7 +2616,4 @@
     // Apply primary color preset
     window.JustLiveChat.setPrimaryColor(presetName);
   });
-
-  // Add a variable to track unread messages
-  let hasUnreadMessages = false;
 })(); 
