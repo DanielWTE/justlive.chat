@@ -1512,10 +1512,10 @@
       // Scroll to bottom
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
       
-      // Add event listener for restart button
-      const restartButton = endedEl.querySelector('.justlive-chat-restart');
-      if (restartButton) {
-        restartButton.addEventListener('click', restartChat);
+      // Add event listener for close button
+      const closeButton = endedEl.querySelector('.justlive-chat-restart');
+      if (closeButton) {
+        closeButton.addEventListener('click', () => restartChat(true));
       }
       const downloadButton = endedEl.querySelector('.justlive-chat-download');
       if (downloadButton) {
@@ -1523,7 +1523,7 @@
       }
     };
 
-    const restartChat = () => {
+    const restartChat = (closeChatWindow = false) => {
       console.log('Restarting chat');
       
       // Clear previous chat
@@ -1566,6 +1566,9 @@
         console.log('Already connected, showing welcome message');
         // Show welcome message
         showWelcomeMessage();
+      }
+      if (closeChatWindow) {
+        chatWindow.classList.remove('open');
       }
     };
 
@@ -2189,7 +2192,7 @@
         // Add event listener for restart button
         const restartButton = deletedEl.querySelector('.justlive-chat-restart');
         if (restartButton) {
-          restartButton.addEventListener('click', restartChat);
+          restartButton.addEventListener('click', () => restartChat(true));
         }
       }
     });
