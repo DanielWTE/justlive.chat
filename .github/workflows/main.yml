@@ -128,10 +128,10 @@ jobs:
           echo "DATABASE_URL=postgresql://postgres:postgres@postgres:5432/justlivechat" > .env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
           echo "PORT=4000" >> .env
-          echo "FRONTEND_URL=http://localhost:3000" >> .env
+          echo "FRONTEND_URL=${{ secrets.FRONTEND_URL || 'http://localhost:3000' }}" >> .env
           echo "NODE_ENV=production" >> .env
-          echo "NEXT_PUBLIC_EMBED_URL=http://localhost:4000/embed.js" >> .env
-          echo "NEXT_PUBLIC_API_URL=http://localhost:4000/" >> .env
+          echo "NEXT_PUBLIC_EMBED_URL=${{ secrets.NEXT_PUBLIC_EMBED_URL || 'http://localhost:4000/embed.js' }}" >> .env
+          echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL || 'http://localhost:4000/' }}" >> .env
       
       - name: Create docker-compose.prod.yml
         run: |

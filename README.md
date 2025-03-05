@@ -18,6 +18,10 @@ A live chat application with a frontend built with Next.js and a backend using E
    npm install
    ```
 3. Set up your environment variables by copying `.env.example` to `.env` and updating as needed
+   ```
+   cp .env.example .env
+   ```
+   **Important**: Always generate a secure random string for `JWT_SECRET`
 4. Start the development servers:
    ```
    npm run dev
@@ -35,6 +39,7 @@ A live chat application with a frontend built with Next.js and a backend using E
 1. Clone the repository
 2. Set up your environment variables by copying `.env.example` to `.env` and updating as needed
    - Make sure to use `DATABASE_URL=postgresql://postgres:postgres@postgres:5432/justlivechat` for Docker
+   - Generate a secure random string for `JWT_SECRET`
 3. Build and start the containers:
    ```
    docker-compose up -d
@@ -54,6 +59,23 @@ To remove volumes (including the database data):
 docker-compose down -v
 ```
 
+## Security Notes
+
+When deploying this application, please consider the following security aspects:
+
+1. **Environment Variables**:
+   - Never commit your `.env` file to version control
+   - Always use a strong, randomly generated value for `JWT_SECRET`
+   - In production, consider using a secrets management solution
+
+2. **Database**:
+   - Change the default PostgreSQL credentials in production
+   - Consider using a managed database service for production deployments
+
+3. **API Access**:
+   - The application uses JWT for authentication
+   - Consider implementing rate limiting for production deployments
+
 ## CI/CD with GitHub Actions
 
 This project includes a GitHub Actions workflow for continuous integration and deployment.
@@ -67,7 +89,12 @@ This project includes a GitHub Actions workflow for continuous integration and d
 ### Setup Requirements
 
 1. **GitHub Repository Secrets**:
-   - `JWT_SECRET`: Your JWT secret key for authentication
+   - Required:
+     - `JWT_SECRET`: Your JWT secret key for authentication
+   - Optional:
+     - `FRONTEND_URL`: URL where the frontend is hosted (defaults to http://localhost:3000)
+     - `NEXT_PUBLIC_EMBED_URL`: URL for the embed script (defaults to http://localhost:4000/embed.js)
+     - `NEXT_PUBLIC_API_URL`: URL for the API (defaults to http://localhost:4000/)
 
 2. **Self-hosted Runner** (for deployment):
    - Required for the deployment job
@@ -109,4 +136,8 @@ npx prisma studio
 - `/frontend` - Next.js frontend application
 - `/backend` - Express backend API and Socket.IO server
   - `/prisma` - Database schema and migrations
-  - `/src` - Backend source code 
+  - `/src` - Backend source code
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
