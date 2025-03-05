@@ -1,0 +1,198 @@
+name: JustLive.Chat CI/CD
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: justlivechat_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Generate Prisma client
+        run: cd backend && npx prisma generate
+      
+      - name: Run backend build
+        run: npm run build --workspace=backend
+      
+      - name: Run frontend build
+        run: npm run build --workspace=frontend
+
+  build-and-push:
+    name: Build and Push Docker Images
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Extract metadata for backend
+        id: meta-backend
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/backend
+          tags: |
+            type=ref,event=branch
+            type=sha,format=short
+            latest
+      
+      - name: Build and push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ steps.meta-backend.outputs.tags }}
+          labels: ${{ steps.meta-backend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+      - name: Extract metadata for frontend
+        id: meta-frontend
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/frontend
+          tags: |
+            type=ref,event=branch
+            type=sha,format=short
+            latest
+      
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ steps.meta-frontend.outputs.tags }}
+          labels: ${{ steps.meta-frontend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to Production
+    needs: build-and-push
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    runs-on: self-hosted
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Create .env file
+        run: |
+          echo "DATABASE_URL=postgresql://postgres:postgres@postgres:5432/justlivechat" > .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+          echo "PORT=4000" >> .env
+          echo "FRONTEND_URL=http://localhost:3000" >> .env
+          echo "NODE_ENV=production" >> .env
+          echo "NEXT_PUBLIC_EMBED_URL=http://localhost:4000/embed.js" >> .env
+          echo "NEXT_PUBLIC_API_URL=http://localhost:4000/" >> .env
+      
+      - name: Create docker-compose.prod.yml
+        run: |
+          cat > docker-compose.prod.yml << EOL
+          version: '3.8'
+          
+          services:
+            postgres:
+              image: postgres:16-alpine
+              container_name: justlivechat-postgres
+              restart: always
+              ports:
+                - "5432:5432"
+              environment:
+                POSTGRES_USER: postgres
+                POSTGRES_PASSWORD: postgres
+                POSTGRES_DB: justlivechat
+              volumes:
+                - postgres_data:/var/lib/postgresql/data
+              healthcheck:
+                test: ["CMD-SHELL", "pg_isready -U postgres"]
+                interval: 5s
+                timeout: 5s
+                retries: 5
+          
+            backend:
+              image: ghcr.io/${{ github.repository }}/backend:latest
+              container_name: justlivechat-backend
+              restart: always
+              ports:
+                - "4000:4000"
+              depends_on:
+                postgres:
+                  condition: service_healthy
+              env_file:
+                - .env
+          
+            frontend:
+              image: ghcr.io/${{ github.repository }}/frontend:latest
+              container_name: justlivechat-frontend
+              restart: always
+              ports:
+                - "3000:3000"
+              depends_on:
+                - backend
+              env_file:
+                - .env
+          
+          volumes:
+            postgres_data:
+          EOL
+      
+      - name: Pull latest images
+        run: |
+          docker pull ghcr.io/${{ github.repository }}/backend:latest
+          docker pull ghcr.io/${{ github.repository }}/frontend:latest
+      
+      - name: Deploy with docker-compose
+        run: |
+          docker-compose -f docker-compose.prod.yml down
+          docker-compose -f docker-compose.prod.yml up -d
+      
+      - name: Clean up old images
+        run: docker image prune -a -f --filter "until=24h" 

@@ -19,6 +19,8 @@
     "docker:down": "docker-compose down",
     "docker:logs": "docker-compose logs -f",
     "docker:restart": "docker-compose restart",
+    "ci:version": "npm version patch -m \"Bump version to %s [skip ci]\"",
+    "ci:deploy": "docker-compose -f docker-compose.prod.yml up -d",
     "version": "git add .",
     "postversion": "git push"
   },
