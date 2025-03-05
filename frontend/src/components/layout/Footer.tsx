@@ -6,22 +6,22 @@ export function Footer() {
 
   return (
     <footer className="border-t bg-background/80 backdrop-blur-sm">
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-          <div className="space-y-4">
+      <div className="container mx-auto px-4 py-6 md:py-8">
+        <div className="grid grid-cols-2 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          <div className="col-span-2 space-y-3 sm:col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center space-x-2">
-              <MessageSquare className="h-6 w-6" />
-              <span className="text-xl font-bold">justlive.chat</span>
+              <MessageSquare className="h-5 w-5 md:h-6 md:w-6" />
+              <span className="text-lg font-bold md:text-xl">justlive.chat</span>
             </Link>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs md:text-sm text-muted-foreground">
               Live chat solution for your website. Connect with your visitors in
               real-time.
             </p>
           </div>
 
           <div>
-            <h3 className="mb-4 text-sm font-medium">Product</h3>
-            <ul className="space-y-2 text-sm">
+            <h3 className="mb-2 md:mb-4 text-sm font-medium">Product</h3>
+            <ul className="space-y-1 md:space-y-2 text-xs md:text-sm">
               <li>
                 <Link
                   href="/#features"
@@ -34,8 +34,8 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="mb-4 text-sm font-medium">Legal</h3>
-            <ul className="space-y-2 text-sm">
+            <h3 className="mb-2 md:mb-4 text-sm font-medium">Legal</h3>
+            <ul className="space-y-1 md:space-y-2 text-xs md:text-sm">
               <li>
                 <Link
                   href="/privacy-policy"
@@ -56,7 +56,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 border-t pt-8 text-center text-sm text-muted-foreground">
+        <div className="mt-6 md:mt-8 border-t pt-4 md:pt-6 text-center text-xs md:text-sm text-muted-foreground">
           <p>© {currentYear} justlive.chat. All rights reserved.</p>
         </div>
       </div>
