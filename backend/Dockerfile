@@ -30,10 +30,10 @@ COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/public ./public
 
-# Create startup script
-RUN echo "#!/bin/sh\n\
-npx prisma migrate deploy\n\
-npm start" > /app/start.sh && chmod +x /app/start.sh
+RUN echo '#!/bin/sh' > /app/start.sh && \
+    echo 'npx prisma migrate deploy' >> /app/start.sh && \
+    echo 'npm start' >> /app/start.sh && \
+    chmod +x /app/start.sh
 
 EXPOSE 4000
 
