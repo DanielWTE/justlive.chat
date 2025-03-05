@@ -126,7 +126,7 @@ jobs:
       - name: Create .env file
         run: |
           echo "DATABASE_URL=postgresql://postgres:postgres@postgres:5432/justlivechat" > .env
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET || 'your_jwt_secret_here' }}" >> .env
           echo "PORT=4000" >> .env
           echo "FRONTEND_URL=${{ secrets.FRONTEND_URL || 'http://localhost:3000' }}" >> .env
           echo "NODE_ENV=production" >> .env
