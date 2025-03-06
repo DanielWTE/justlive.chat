@@ -206,52 +206,41 @@
   // Get the current language translations
   const t = isGerman ? translations.de : translations.en;
 
-  // Setup logging based on debug mode
-  const originalConsole = {
-    log: console.log,
-    warn: console.warn,
-    error: console.error,
-    info: console.info
+  // Create a custom logger that doesn't override console methods
+  const justLiveLogger = {
+    log: function(...args) {
+      if (debugMode) {
+        justLiveLogger.log('[JustLive Debug]', ...args);
+      }
+    },
+    warn: function(...args) {
+      if (debugMode) {
+        justLiveLogger.warn('[JustLive Debug]', ...args);
+      }
+    },
+    error: function(...args) {
+      // Always log errors with JustLive prefix
+      if (args[0] && args[0].toString().includes('JustLive Chat:') || debugMode) {
+        justLiveLogger.error('[JustLive Debug]', ...args);
+      }
+    },
+    info: function(...args) {
+      if (debugMode) {
+        justLiveLogger.info('[JustLive Debug]', ...args);
+      }
+    }
   };
 
   // Function to toggle debug mode
   const toggleDebugMode = (enable) => {
+    const oldDebugMode = debugMode;
     debugMode = enable === undefined ? !debugMode : !!enable;
     
-    if (!debugMode) {
-      console.log = function() {};
-      console.warn = function() {};
-      console.info = function() {};
-      // Keep error logging for critical errors
-      console.error = function(message) {
-        if (message && message.toString().includes('JustLive Chat:')) {
-          originalConsole.error.apply(console, arguments);
-        }
-      };
-      originalConsole.log('[JustLive Debug] Debug mode deactivated');
-    } else {
-      // Add prefix to all logs in debug mode
-      console.log = function() {
-        const args = Array.from(arguments);
-        originalConsole.log.apply(console, ['[JustLive Debug]', ...args]);
-      };
-      console.warn = function() {
-        const args = Array.from(arguments);
-        originalConsole.warn.apply(console, ['[JustLive Debug]', ...args]);
-      };
-      console.error = function() {
-        const args = Array.from(arguments);
-        originalConsole.error.apply(console, ['[JustLive Debug]', ...args]);
-      };
-      console.info = function() {
-        const args = Array.from(arguments);
-        originalConsole.info.apply(console, ['[JustLive Debug]', ...args]);
-      };
-      
-      console.log('Debug mode activated');
+    if (!oldDebugMode && debugMode) {
+      justLiveLogger.log('Debug mode activated');
+    } else if (oldDebugMode && !debugMode) {
+      justLiveLogger.log('[JustLive Debug] Debug mode deactivated');
     }
-    
-    return debugMode;
   };
 
   // Initialize console based on initial debug mode
@@ -267,21 +256,55 @@
     return Object.keys(COLOR_PRESETS);
   };
   
-  // Function to set color preset
+  // Function to change color preset
   window.JustLiveChat.setColorPreset = (presetName) => {
     if (!COLOR_PRESETS[presetName]) {
-      console.error(`JustLive Chat: Invalid color preset "${presetName}". Available presets: ${Object.keys(COLOR_PRESETS).join(', ')}`);
-      return false;
+      justLiveLogger.error('JustLive Chat: Invalid color preset. Available presets: ' + Object.keys(COLOR_PRESETS).join(', '));
+      return;
     }
     
-    window.JustLiveChat.setPrimaryColor(presetName);
-    return true;
+    // Update color preset
+    colorPreset = presetName;
+    
+    // Update CSS variables
+    const root = document.documentElement;
+    const colors = COLOR_PRESETS[presetName];
+    
+    root.style.setProperty('--justlive-primary-color', colors.primary);
+    root.style.setProperty('--justlive-primary-text-color', colors.primaryText || '#FFFFFF');
+    root.style.setProperty('--justlive-primary-light-color', colors.primaryLight || colors.primary + '33');
+    root.style.setProperty('--justlive-background-color', colors.background || '#FFFFFF');
+    root.style.setProperty('--justlive-text-color', colors.text || '#333333');
+    root.style.setProperty('--justlive-border-color', colors.border || '#EEEEEE');
+    
+    // Update pulse animation color
+    const style = document.getElementById('justlive-chat-pulse-style');
+    if (style) {
+      style.innerHTML = `
+        @keyframes justlive-chat-pulse {
+          0% {
+            box-shadow: 0 0 0 0 ${colors.primary}80;
+          }
+          70% {
+            box-shadow: 0 0 0 10px ${colors.primary}00;
+          }
+          100% {
+            box-shadow: 0 0 0 0 ${colors.primary}00;
+          }
+        }
+      `;
+    }
+    
+    // Store color preset preference
+    localStorage.setItem('justlive_color_preset', presetName);
+    
+    justLiveLogger.log(`Color preset changed to ${presetName}`);
   };
   
   // Function to change language
   window.JustLiveChat.setLanguage = (language) => {
     if (language !== 'en' && language !== 'de') {
-      console.error('JustLive Chat: Invalid language. Supported languages are "en" and "de".');
+      justLiveLogger.error('JustLive Chat: Invalid language. Supported languages are "en" and "de".');
       return;
     }
     
@@ -317,14 +340,14 @@
       welcomeEl.querySelector('.justlive-chat-welcome-message').textContent = isOnline ? newT.teamOnline : newT.teamOffline;
     }
     
-    console.log(`JustLive Chat: Language changed to ${language}`);
+    justLiveLogger.log(`Language changed to ${language}`);
   };
   
   // Function to change primary color using presets
   window.JustLiveChat.setPrimaryColor = (presetName) => {
     // Validate preset name
     if (!COLOR_PRESETS[presetName]) {
-      console.error(`JustLive Chat: Invalid color preset "${presetName}". Available presets: ${Object.keys(COLOR_PRESETS).join(', ')}`);
+      justLiveLogger.error(`JustLive Chat: Invalid color preset "${presetName}". Available presets: ${Object.keys(COLOR_PRESETS).join(', ')}`);
       return;
     }
     
@@ -399,7 +422,7 @@
     `;
     document.head.appendChild(style);
     
-    console.log(`JustLive Chat: Color preset changed to ${presetName}`);
+    justLiveLogger.log(`JustLive Chat: Color preset changed to ${presetName}`);
   };
   
   // Function to get available size options
@@ -410,7 +433,7 @@
   // Function to change widget size
   window.JustLiveChat.setSize = (size) => {
     if (!SIZE_PRESETS[size]) {
-      console.error(`JustLive Chat: Invalid size "${size}". Available sizes: ${Object.keys(SIZE_PRESETS).join(', ')}`);
+      justLiveLogger.error(`JustLive Chat: Invalid size "${size}". Available sizes: ${Object.keys(SIZE_PRESETS).join(', ')}`);
       return false;
     }
     
@@ -420,14 +443,14 @@
     if (chatWindow) {
       chatWindow.style.width = `${selectedSize.width}px`;
       chatWindow.style.height = `${selectedSize.height}px`;
-      console.log(`JustLive Chat: Size changed to ${size}`);
+      justLiveLogger.log(`JustLive Chat: Size changed to ${size}`);
     }
     
     return true;
   };
   
   if (!websiteId) {
-    console.error('JustLive Chat: Missing website ID');
+    justLiveLogger.error('JustLive Chat: Missing website ID');
     return;
   }
 
@@ -1243,7 +1266,7 @@
 
   // Error display functions
   const showError = (message, title = t.error) => {
-    console.error(`JustLive Chat: ${message}`);
+    justLiveLogger.error(`JustLive Chat: ${message}`);
     
     // Create error display if it doesn't exist
     let errorDisplay = document.getElementById('justlive-chat-error');
@@ -1369,9 +1392,9 @@
 
   // Socket.IO setup
   const script = document.createElement('script');
-  script.src = 'https://cdn.socket.io/4.7.4/socket.io.min.js';
+  script.src = 'https://justlive.chat/socket.io.min.js';
   script.onload = () => {
-    console.log('Socket.IO script loaded');
+    justLiveLogger.log('Socket.IO script loaded');
     
     // Move variable declarations to the top before they're used
     // Variables for tracking state
@@ -1390,13 +1413,13 @@
         storedVisitorInfo = JSON.parse(storedInfo);
       }
     } catch (e) {
-      console.error('Error parsing stored visitor info:', e);
+      justLiveLogger.error('Error parsing stored visitor info:', e);
     }
     
     // Get stored room ID from localStorage if available
     const storedRoomId = localStorage.getItem(`justlive-chat-room-${websiteId}`);
     if (storedRoomId) {
-      console.log('Found stored room ID:', storedRoomId);
+      justLiveLogger.log('Found stored room ID:', storedRoomId);
       currentRoomId = storedRoomId;
     }
 
@@ -1465,10 +1488,10 @@
 
     // Function to update admin status UI
     const updateAdminStatus = (isAdminOnline) => {
-      console.log('Updating admin status UI:', isAdminOnline);
+      justLiveLogger.log('Updating admin status UI:', isAdminOnline);
       
       if (adminStatus) {
-        console.log('Admin status element found');
+        justLiveLogger.log('Admin status element found');
         if (isAdminOnline) {
           adminStatus.classList.remove('offline');
           adminStatus.classList.add('online');
@@ -1487,7 +1510,7 @@
           chatButton.classList.remove('admin-online');
         }
       } else {
-        console.log('Admin status element not found');
+        justLiveLogger.log('Admin status element not found');
       }
     };
 
@@ -1526,7 +1549,7 @@
     };
 
     const showChatEnded = (userInitiated = false) => {
-      console.log('Showing chat ended message');
+      justLiveLogger.log('Showing chat ended message');
       
       // Set chat as ended
       isChatEnded = true;
@@ -1546,7 +1569,7 @@
       
       // Check if there's already an ended message
       if (messagesContainer.querySelector('.justlive-chat-ended')) {
-        console.log('Chat ended message already exists, not adding another one');
+        justLiveLogger.log('Chat ended message already exists, not adding another one');
         return;
       }
       
@@ -1576,7 +1599,7 @@
     };
 
     const restartChat = (closeChatWindow = false) => {
-      console.log('Restarting chat');
+      justLiveLogger.log('Restarting chat');
       
       // Clear previous chat
       messagesContainer.innerHTML = '';
@@ -1597,25 +1620,25 @@
       
       // Stelle sicher, dass wir verbunden sind
       if (!isConnected) {
-        console.log('Not connected, attempting to reconnect');
+        justLiveLogger.log('Not connected, attempting to reconnect');
         // Versuche, die Verbindung wiederherzustellen
         socket.connect();
         
         // Warte kurz, bis die Verbindung hergestellt ist
         setTimeout(() => {
           if (socket.connected) {
-            console.log('Reconnected successfully');
+            justLiveLogger.log('Reconnected successfully');
             isConnected = true;
             // Show welcome message
             showWelcomeMessage();
           } else {
-            console.log('Failed to reconnect');
+            justLiveLogger.log('Failed to reconnect');
             // Falls die Verbindung nicht hergestellt werden konnte
             showError(t.connectionError, t.error);
           }
         }, 1000);
       } else {
-        console.log('Already connected, showing welcome message');
+        justLiveLogger.log('Already connected, showing welcome message');
         // Show welcome message
         showWelcomeMessage();
       }
@@ -1658,11 +1681,11 @@
     const showWelcomeMessage = () => {
       // Skip welcome message if we have an active chat session
       if (currentRoomId && !isChatEnded && chatWasActive) {
-        console.log('Skipping welcome message due to active chat session');
+        justLiveLogger.log('Skipping welcome message due to active chat session');
         return skipWelcomeAndEmailOnReconnect();
       }
       
-      console.log('Showing welcome message');
+      justLiveLogger.log('Showing welcome message');
       messagesContainer.innerHTML = '';
       
       // Make sure input and send button are disabled
@@ -1672,7 +1695,7 @@
       
       // Fetch current admin status before showing welcome message
       fetchAdminStatus((data) => {
-        console.log('Admin status for welcome message:', data);
+        justLiveLogger.log('Admin status for welcome message:', data);
         const isAdminOnline = data.isAdminOnline;
         
         const welcomeEl = document.createElement('div');
@@ -1700,11 +1723,11 @@
     const showUserInfoForm = () => {
       // Skip user info form if we have an active chat session
       if (currentRoomId && !isChatEnded && chatWasActive) {
-        console.log('Skipping user info form due to active chat session');
+        justLiveLogger.log('Skipping user info form due to active chat session');
         return skipWelcomeAndEmailOnReconnect();
       }
       
-      console.log('Showing user info form');
+      justLiveLogger.log('Showing user info form');
       messagesContainer.innerHTML = '';
       
       // Make sure chat input remains disabled until user submits email
@@ -1756,7 +1779,7 @@
         }
         
         if (isValid) {
-          console.log('User info form submitted successfully');
+          justLiveLogger.log('User info form submitted successfully');
           visitorInfo.name = "Visitor"; // Default name
           visitorInfo.email = emailInput.value.trim();
           hasSubmittedInfo = true;
@@ -1796,7 +1819,7 @@
       const skipLink = formEl.querySelector('.justlive-chat-skip-email a');
       skipLink.addEventListener('click', (e) => {
         e.preventDefault();
-        console.log('User skipped email input');
+        justLiveLogger.log('User skipped email input');
         visitorInfo.name = "Visitor";
         visitorInfo.email = null;
         hasSubmittedInfo = true;
@@ -1836,7 +1859,7 @@
     button.addEventListener('click', () => {
       // If disconnected, try to reconnect but still allow opening the chat window
       if (!isConnected) {
-        console.log('Attempting to reconnect on chat button click');
+        justLiveLogger.log('Attempting to reconnect on chat button click');
         
         // Try to reconnect
         socket.connect();
@@ -1881,16 +1904,16 @@
       
       // If we don't have a room ID yet but the chat is initialized
       if (!currentRoomId && !isChatEnded) {
-        console.log('No room ID yet, but chat is initialized');
+        justLiveLogger.log('No room ID yet, but chat is initialized');
         
         // If user hasn't submitted info yet, show the form
         if (!hasSubmittedInfo) {
-          console.log('User has not submitted info, showing form');
+          justLiveLogger.log('User has not submitted info, showing form');
           showUserInfoForm();
           return;
         }
         
-        console.log('Waiting for room ID to be established...');
+        justLiveLogger.log('Waiting for room ID to be established...');
         
         // Add a temporary message to show the user their message was received
         const tempMessage = document.createElement('div');
@@ -1907,7 +1930,7 @@
         
         // Make sure we're connected to the chat
         if (!socket.connected) {
-          console.log('Socket not connected, reconnecting...');
+          justLiveLogger.log('Socket not connected, reconnecting...');
           socket.connect();
         }
         
@@ -1929,7 +1952,7 @@
       
       // Normal case: we have a room ID
       if (currentRoomId && !isChatEnded) {
-        console.log('Sending message to room:', currentRoomId);
+        justLiveLogger.log('Sending message to room:', currentRoomId);
         
         // Send message to server
         socket.emit('chat:message', { 
@@ -1944,7 +1967,7 @@
         // Focus input
         input.focus();
       } else if (isChatEnded) {
-        console.log('Chat has ended, cannot send message');
+        justLiveLogger.log('Chat has ended, cannot send message');
         showError(t.chatEnded, t.error);
         input.value = '';
       }
@@ -1959,7 +1982,7 @@
 
     // Socket event handlers
     socket.on('connect', () => {
-      console.log('Connected to server');
+      justLiveLogger.log('Connected to server');
       isConnected = true;
       isReconnecting = false;
       
@@ -1971,7 +1994,7 @@
       
       // If we have a room ID stored, try to rejoin that room
       if (currentRoomId && !socket.hasEmittedJoin) {
-        console.log('Attempting to rejoin room:', currentRoomId);
+        justLiveLogger.log('Attempting to rejoin room:', currentRoomId);
         
         // Update stored visitor info with current URL and page title
         if (storedVisitorInfo && Object.keys(storedVisitorInfo).length > 0) {
@@ -2004,7 +2027,7 @@
     });
 
     socket.on('chat:joined', (data) => {
-      console.log('Joined chat room:', data.roomId);
+      justLiveLogger.log('Joined chat room:', data.roomId);
       
       // Reset the join flag so we can join again if needed
       socket.hasEmittedJoin = false;
@@ -2057,14 +2080,14 @@
 
     socket.on('connect_error', (error) => {
       isConnected = false;
-      console.error('JustLive Chat: Connection error:', error);
+      justLiveLogger.error('JustLive Chat: Connection error:', error);
       
       // Update UI to show connection error
       updateConnectionStatus(false);
     });
 
     socket.on('disconnect', () => {
-      console.log('Disconnected from server');
+      justLiveLogger.log('Disconnected from server');
       isConnected = false;
       
       // Only show the reconnecting message if we were in an active chat
@@ -2075,7 +2098,7 @@
     });
 
     socket.on('reconnect', () => {
-      console.log('Reconnected to server');
+      justLiveLogger.log('Reconnected to server');
       isConnected = true;
       wasReconnecting = isReconnecting;
       isReconnecting = false;
@@ -2096,7 +2119,7 @@
     });
     
     socket.on('reconnect_attempt', (attemptNumber) => {
-      console.log(`Reconnection attempt ${attemptNumber}`);
+      justLiveLogger.log(`Reconnection attempt ${attemptNumber}`);
       if (currentRoomId && !isReconnecting) {
         isReconnecting = true;
         addSystemMessage(t.reconnecting);
@@ -2104,11 +2127,11 @@
     });
     
     socket.on('reconnect_error', (error) => {
-      console.error('JustLive Chat: Reconnection error:', error);
+      justLiveLogger.error('JustLive Chat: Reconnection error:', error);
     });
     
     socket.on('reconnect_failed', () => {
-      console.log('Failed to reconnect');
+      justLiveLogger.log('Failed to reconnect');
       isReconnecting = false;
       
       if (currentRoomId) {
@@ -2173,7 +2196,7 @@
 
     socket.on('chat:error', (error) => {
       if (error.message === 'Invalid room') {
-        console.log('Invalid room, deleting room ID from localStorage');
+        justLiveLogger.log('Invalid room, deleting room ID from localStorage');
         localStorage.removeItem(`justlive-chat-room-${websiteId}`);
         localStorage.removeItem(`justlive-chat-session-${websiteId}`);
         localStorage.removeItem(`justlive-chat-chat-active-${websiteId}`);
@@ -2181,12 +2204,12 @@
         restartChat();
         return;
       }
-      console.error('JustLive Chat: Chat error:', error.message);
+      justLiveLogger.error('JustLive Chat: Chat error:', error.message);
       showError(error.message, t.error);
     });
 
     socket.on('chat:session:end', () => {
-      console.log('Chat session ended by agent');
+      justLiveLogger.log('Chat session ended by agent');
       // Only show ended message if the chat hasn't already been marked as ended
       if (!isChatEnded) {
         showChatEnded();
@@ -2208,7 +2231,7 @@
 
     // Add handler for chat room deleted
     socket.on('chat:room:deleted', () => {
-      console.log('Chat room deleted by agent');
+      justLiveLogger.log('Chat room deleted by agent');
       
       // Only proceed if the chat hasn't already been marked as ended
       if (!isChatEnded) {
@@ -2284,7 +2307,7 @@
         //     xhr.setRequestHeader('Content-Type', 'application/json');
         //     xhr.send(JSON.stringify({ roomId: currentRoomId }));
         //   } catch (e) {
-        //     console.error('JustLive Chat: Failed to send visitor-left notification:', e);
+        //     justLiveLogger.error('JustLive Chat: Failed to send visitor-left notification:', e);
         //   }
         // }
       }
@@ -2292,14 +2315,14 @@
 
     // Function to fetch admin status
     const fetchAdminStatus = (callback) => {
-      console.log('Fetching admin status...');
+      justLiveLogger.log('Fetching admin status...');
       
       // Remove any existing event listeners to avoid duplicates
       socket.off('chat:admin:status');
       
       // Set up a one-time event handler for admin status
       socket.once('chat:admin:status', (data) => {
-        console.log('Received admin status:', data);
+        justLiveLogger.log('Received admin status:', data);
         clearTimeout(timeoutId);
         handleAdminStatusResponse(data);
         if (callback) callback(data);
@@ -2307,17 +2330,17 @@
       
       // Request admin status
       if (socket.connected) {
-        console.log('Socket connected, requesting admin status');
+        justLiveLogger.log('Socket connected, requesting admin status');
         socket.emit('chat:admin:status:request', { websiteId });
       } else {
-        console.log('Socket not connected, connecting...');
+        justLiveLogger.log('Socket not connected, connecting...');
         socket.connect();
         setTimeout(() => {
           if (socket.connected) {
-            console.log('Socket connected after reconnect, requesting admin status');
+            justLiveLogger.log('Socket connected after reconnect, requesting admin status');
             socket.emit('chat:admin:status:request', { websiteId });
           } else {
-            console.log('Failed to connect socket');
+            justLiveLogger.log('Failed to connect socket');
             if (callback) callback({ isAdminOnline: false });
           }
         }, 1000);
@@ -2325,7 +2348,7 @@
       
       // Set a timeout in case we don't get a response
       const timeoutId = setTimeout(() => {
-        console.log('Admin status request timed out');
+        justLiveLogger.log('Admin status request timed out');
         socket.off('chat:admin:status');
         if (callback) callback({ isAdminOnline: false });
       }, 5000); // Increase timeout to 5 seconds
@@ -2333,7 +2356,7 @@
 
     // Function to handle admin status response
     const handleAdminStatusResponse = (data) => {
-      console.log('Handling admin status response:', data);
+      justLiveLogger.log('Handling admin status response:', data);
       const isAdminOnline = data.isAdminOnline;
       
       // Update UI
@@ -2344,24 +2367,24 @@
         // Don't update welcome message if user info form is showing
         if (messagesContainer.querySelector('.justlive-chat-user-form') || 
             (messagesContainer.querySelector('.justlive-chat-welcome') && messagesContainer.querySelector('#visitor-email'))) {
-          console.log('User info form is showing, not updating welcome message');
+          justLiveLogger.log('User info form is showing, not updating welcome message');
           return;
         }
         
         const welcomeMessage = messagesContainer.querySelector('.justlive-chat-welcome-message');
         if (welcomeMessage) {
-          console.log('Updating welcome message with admin status:', isAdminOnline);
+          justLiveLogger.log('Updating welcome message with admin status:', isAdminOnline);
           if (isAdminOnline) {
             welcomeMessage.textContent = t.teamOnline;
           } else {
             welcomeMessage.textContent = t.teamOffline;
           }
         } else {
-          console.log('Welcome message element not found');
+          justLiveLogger.log('Welcome message element not found');
           
           // Create welcome message if it doesn't exist and user has submitted info
           if (hasSubmittedInfo && !messagesContainer.querySelector('.justlive-chat-user-info-form')) {
-            console.log('Creating new welcome message');
+            justLiveLogger.log('Creating new welcome message');
             
             const newWelcomeMessage = document.createElement('div');
             newWelcomeMessage.className = 'justlive-chat-welcome-message';
@@ -2388,11 +2411,11 @@
             } else {
               messagesContainer.appendChild(newWelcomeMessage);
             }
-            console.log('Added new welcome message');
+            justLiveLogger.log('Added new welcome message');
           }
         }
       } else {
-        console.log('Messages container not found');
+        justLiveLogger.log('Messages container not found');
       }
     };
 
@@ -2478,7 +2501,7 @@
     const skipWelcomeAndEmailOnReconnect = () => {
       // Check if we have an active chat session and it's not ended
       if (currentRoomId && !isChatEnded && chatWasActive) {
-        console.log('Skipping welcome message and email input on reconnect');
+        justLiveLogger.log('Skipping welcome message and email input on reconnect');
         
         // Clear any welcome message or email form
         messagesContainer.innerHTML = '';
