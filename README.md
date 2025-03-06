@@ -33,21 +33,28 @@ JustLive.Chat is a modern live chat solution that enables website owners to comm
 ### Local Development
 
 1. Clone the repository
+   ```
+   git clone https://github.com/DanielWTE/justlive.chat.git
+   cd justlive.chat
+   ```
+
 2. Install dependencies:
    ```
    npm install
    ```
+
 3. Set up your environment variables by copying `.env.example` to `.env` and updating as needed
    ```
    cp .env.example .env
    ```
    **Important**: Always generate a secure random string for `JWT_SECRET`
+
 4. Start the development servers:
    ```
    npm run dev
    ```
 
-## Docker Deployment
+## Self-Hosted Deployment
 
 ### Prerequisites
 
@@ -57,16 +64,67 @@ JustLive.Chat is a modern live chat solution that enables website owners to comm
 ### Running with Docker Compose
 
 1. Clone the repository
+   ```
+   git clone https://github.com/DanielWTE/justlive.chat.git
+   cd justlive.chat
+   ```
+
 2. Set up your environment variables by copying `.env.example` to `.env` and updating as needed
-   - Make sure to use `DATABASE_URL=postgresql://postgres:postgres@postgres:5432/justlivechat` for Docker
-   - Generate a secure random string for `JWT_SECRET`
+   ```
+   cp .env.example .env
+   ```
+
+   **Important Environment Variables**:
+   - `DATABASE_URL=postgresql://postgres:postgres@postgres:5432/justlivechat` (for Docker)
+   - `JWT_SECRET=your_jwt_secret_here` (generate a secure random string)
+   - `NEXT_PUBLIC_API_URL=http://your-domain.com:4000` (or your backend URL)
+   - `APP_ENV=production` (or "development" for testing)
+   - `EXPRESS_PORT=4000` (backend port)
+   - `FRONTEND_URL=http://your-domain.com:3000` (or your frontend URL)
+
 3. Build and start the containers:
    ```
+   docker-compose build --no-cache
    docker-compose up -d
    ```
+
+   This ensures that the environment variables are properly passed to the Next.js build process.
+
 4. The application will be available at:
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:4000
+   - Frontend: http://your-domain.com:3000 (or http://localhost:3000 for local deployment)
+   - Backend API: http://your-domain.com:4000 (or http://localhost:4000 for local deployment)
+
+### Environment Variables in Docker
+
+The Docker setup is configured to handle environment variables correctly for Next.js:
+
+1. **Build-time variables**: Environment variables needed during the Next.js build process are passed as build arguments in docker-compose.yml
+2. **Runtime variables**: The same variables are also available at runtime in the container
+3. **Production environment file**: A .env.production file is automatically created during the build process
+
+If you need to update environment variables after deployment:
+
+1. Update your `.env` file
+2. Rebuild and restart the containers:
+   ```
+   docker-compose down
+   docker-compose build --no-cache
+   docker-compose up -d
+   ```
+
+### Using a Reverse Proxy
+
+For production deployments, it's recommended to use a reverse proxy like Nginx or Traefik:
+
+1. Configure your reverse proxy to forward requests to the appropriate containers:
+   - Frontend: Port 3000
+   - Backend: Port 4000
+
+2. Update your environment variables to use the correct URLs:
+   - `NEXT_PUBLIC_API_URL=https://api.your-domain.com` (or your backend URL)
+   - `FRONTEND_URL=https://your-domain.com` (or your frontend URL)
+
+3. Rebuild the containers with the updated environment variables
 
 ### Stopping the Containers
 
@@ -95,6 +153,10 @@ When deploying this application, please consider the following security aspects:
 3. **API Access**:
    - The application uses JWT for authentication
    - Consider implementing rate limiting for production deployments
+
+4. **HTTPS**:
+   - Always use HTTPS in production
+   - Configure your reverse proxy to handle SSL/TLS termination
 
 ## CI/CD with GitHub Actions
 
@@ -172,10 +234,29 @@ The application uses the following main entities:
 To integrate JustLive.Chat into your website, simply add the following script to your HTML code:
 
 ```html
-<script src="http://your-backend-url/embed.js" data-website-id="YOUR_WEBSITE_ID"></script>
+<script src="https://your-backend-url/embed.js" data-website-id="YOUR_WEBSITE_ID"></script>
 ```
 
 Replace `YOUR_WEBSITE_ID` with the ID you receive in the dashboard after registering your website.
+
+## Troubleshooting
+
+### Environment Variables in Next.js
+
+If you're experiencing issues with environment variables not being available in the frontend:
+
+1. Make sure your `.env` file contains the correct variables
+2. Rebuild the frontend container with `docker-compose build --no-cache frontend`
+3. Check that the variables are correctly passed as build arguments in docker-compose.yml
+4. Verify that the variables start with `NEXT_PUBLIC_` if they need to be accessible in the browser
+
+### Database Connection Issues
+
+If the backend can't connect to the database:
+
+1. Check that the `DATABASE_URL` is correctly set in your `.env` file
+2. Ensure the PostgreSQL container is running with `docker-compose ps`
+3. Verify that the database has been initialized with `docker-compose logs postgres`
 
 ## License
 
