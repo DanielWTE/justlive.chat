@@ -64,7 +64,7 @@ app.use(cors({
     if(!origin) return callback(null, true);
     
     const allowedOrigins = [
-      'https://justlive.chat',
+      process.env.FRONTEND_URL || 'https://justlive.chat',
     ];
     
     if(allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.justlive.chat')) {
