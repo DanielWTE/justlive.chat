@@ -458,6 +458,7 @@ export const handleChatEvents = (
     try {
       console.log('Message received:', { 
         socketId: socket.id, 
+        websiteId: socket.data.websiteId,
         roomId: data.roomId,
         contentLength: data.content.length,
         isAdmin: data.isAdmin,
