@@ -367,7 +367,7 @@ export const handleChatEvents = (
         // Verify room exists and belongs to website
         const room = await getChatRoomById(roomId);
         if (!room || room.websiteId !== websiteId) {
-          console.warn('Invalid room access attempt:', { roomId, websiteId });
+          console.warn('Invalid room access attempt:', { roomId, websiteId, roomWebsiteId: room?.websiteId });
           socket.emit('chat:error', { message: 'Invalid room' });
           return;
         }
