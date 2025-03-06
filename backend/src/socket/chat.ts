@@ -453,12 +453,14 @@ export const handleChatEvents = (
     visitorInfo?: {
       name: string;
       email: string;
-    }
+    },
+    websiteId?: string
   }) => {
     try {
       console.log('Message received:', { 
         socketId: socket.id, 
-        websiteId: socket.data.websiteId,
+        socketWebsiteId: socket.data.websiteId,
+        messageWebsiteId: data.websiteId,
         roomId: data.roomId,
         contentLength: data.content.length,
         isAdmin: data.isAdmin,
@@ -466,7 +468,8 @@ export const handleChatEvents = (
       });
       
       const { content, roomId, visitorInfo } = data;
-      const { websiteId, sessionId } = socket.data;
+      const websiteId = data.websiteId || socket.data.websiteId;
+      const { sessionId } = socket.data;
 
       // If visitor info is provided and this is not an admin, store it
       if (visitorInfo && !socket.data.isAdmin) {
@@ -509,7 +512,13 @@ export const handleChatEvents = (
       // Verify room exists and belongs to website
       const room = await getChatRoomById(roomId);
       if (!room || room.websiteId !== websiteId) {
-        console.warn('Invalid room for message:', { roomId, websiteId, roomWebsiteId: room?.websiteId });
+        console.warn('Invalid room for message:', { 
+          roomId, 
+          websiteId, 
+          roomWebsiteId: room?.websiteId,
+          messageWebsiteId: data.websiteId,
+          socketWebsiteId: socket.data.websiteId
+        });
         socket.emit('chat:error', { message: 'Invalid room' });
         return;
       }

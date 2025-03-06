@@ -755,29 +755,6 @@ export default function ChatPage() {
   // Function to handle selecting a chat session
   const handleSelectChatSession = (roomId: string) => {
     setActiveRoomId(roomId);
-    
-    const session = chatSessions[roomId];
-    const socketWebsiteId = socket?.auth && (socket.auth as any).websiteId;
-    if (session && socket && session.websiteId !== socketWebsiteId) {
-      console.log(`Updating socket connection for website: ${session.websiteId}`);
-      
-      socket.disconnect();
-      const newSocket = io(`${process.env.NEXT_PUBLIC_API_URL}`, {
-        auth: {
-          isAdmin: true,
-          websiteId: session.websiteId,
-        },
-        withCredentials: true,
-        transports: ["websocket"],
-        reconnection: true,
-        reconnectionAttempts: 5,
-        reconnectionDelay: 1000,
-        extraHeaders: {
-          Authorization: "Bearer " + localStorage.getItem("token"),
-        },
-      });
-      setSocket(newSocket);
-    }
   };
 
   // Function to go back to chat list on mobile
@@ -787,12 +764,25 @@ export default function ChatPage() {
 
   const handleSendMessage = (content: string) => {
     if (socket && activeRoomId && isConnected) {
-      console.log("Sending message:", { content, roomId: activeRoomId });
+      // Get the websiteId from the current chat session
+      const session = chatSessions[activeRoomId];
+      if (!session) {
+        console.error(`Cannot send message: No session found for room ${activeRoomId}`);
+        return;
+      }
+      
+      console.log("Sending message:", { 
+        content, 
+        roomId: activeRoomId,
+        websiteId: session.websiteId 
+      });
+      
       socket.emit("chat:message", {
         content,
         roomId: activeRoomId,
         isAdmin: true,
-      });
+        websiteId: session.websiteId
+      } as any);
     }
   };
 
