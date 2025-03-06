@@ -26,7 +26,7 @@ export const handleEmbedGenerate = async (req: Request, res: Response) => {
     // Replace placeholders with actual values
     let script = template.replace(
       '{{BACKEND_URL}}',
-      process.env.NODE_ENV === 'production'
+      process.env.APP_ENV === 'production'
         ? process.env.BACKEND_URL || 'https://api.justlive.chat'
         : 'http://localhost:4000'
     );
@@ -36,7 +36,7 @@ export const handleEmbedGenerate = async (req: Request, res: Response) => {
       try {
         const minifyResult = await minify(script, {
           compress: {
-            drop_console: process.env.NODE_ENV === 'production', // Remove console logs in production
+            drop_console: process.env.APP_ENV === 'production', // Remove console logs in production
             drop_debugger: true
           },
           mangle: true,
@@ -56,7 +56,7 @@ export const handleEmbedGenerate = async (req: Request, res: Response) => {
     }
 
     // Set cache headers for production
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.APP_ENV === 'production') {
       res.setHeader('Cache-Control', 'public, max-age=3600'); // 1 hour
     } else {
       res.setHeader('Cache-Control', 'no-cache');
