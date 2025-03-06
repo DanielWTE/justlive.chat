@@ -80,6 +80,12 @@
       pulseBackground: 'rgba(55, 65, 81, 0.4)',
       hoverBackground: '#374151',
       textColor: 'white',
+    },
+    indigo: {
+      primary: '#4F46E5',
+      pulseBackground: 'rgba(79, 70, 229, 0.4)',
+      hoverBackground: '#4338CA',
+      textColor: 'white',
     }
   };
   

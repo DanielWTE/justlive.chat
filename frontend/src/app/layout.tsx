@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
@@ -42,6 +42,16 @@ export const metadata: Metadata = {
     creator: '@justlivechat',
   },
 };
+
+export async function generateViewport(): Promise<Viewport> {
+  return {
+    width: "device-width",
+    height: "device-height",
+    initialScale: 1,
+    maximumScale: 5,
+    viewportFit: "cover",
+  };
+}
 
 export default function RootLayout({
   children,
