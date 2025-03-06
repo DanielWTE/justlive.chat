@@ -2201,7 +2201,7 @@
     });
 
     socket.on('chat:error', (error) => {
-      if (error.message === 'Invalid room') {
+      if (error.message === 'Invalid room' || error.message === 'Chat room not found') {
         justLiveLogger.log('Invalid room, deleting room ID from localStorage');
         localStorage.removeItem(`justlive-chat-room-${websiteId}`);
         localStorage.removeItem(`justlive-chat-session-${websiteId}`);
