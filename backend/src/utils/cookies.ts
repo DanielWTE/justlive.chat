@@ -2,6 +2,8 @@ import { Response } from 'express';
 
 export const setCookie = (res: Response, token: string): void => {
   const domain = process.env.FRONTEND_URL?.replace('https://', '').replace('http://', '').replace('www.', '') || 'localhost';
+  console.log('process.env.APP_ENV', process.env.APP_ENV);
+  console.log('process.env.FRONTEND_URL', process.env.FRONTEND_URL);
   console.log('domain', domain);
   res.cookie('justlivechat_token', token, {
     domain: process.env.APP_ENV === 'production' ? `.${domain}` : 'localhost',
