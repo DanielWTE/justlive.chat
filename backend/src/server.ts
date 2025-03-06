@@ -19,11 +19,51 @@ import { handleChatEvents } from "./socket/chat";
 import { ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData } from "./socket/events";
 import usersRouter from './api/users';
 import dotenv from "dotenv";
+import { isDomainRegistered, getAllRegisteredDomains } from './database/fetch';
 
 dotenv.config();
 
 const app = express();
 const httpServer = createServer(app);
+
+// Domain cache for performance
+let domainCache: string[] = [];
+let lastCacheUpdate = 0;
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+// Function to refresh domain cache
+const refreshDomainCache = async () => {
+  try {
+    const now = Date.now();
+    if (now - lastCacheUpdate > CACHE_TTL) {
+      domainCache = await getAllRegisteredDomains();
+      lastCacheUpdate = now;
+      console.log(`Domain cache refreshed with ${domainCache.length} domains`);
+    }
+  } catch (error) {
+    console.error('Error refreshing domain cache:', error);
+  }
+};
+
+// Initial cache load
+refreshDomainCache();
+
+// Set up a periodic refresh of the domain cache
+setInterval(refreshDomainCache, CACHE_TTL / 2); // Refresh at half the TTL time
+
+// Helper function to check if a domain is in the cache
+export const isDomainInCache = (domain: string): boolean => {
+  const cleanDomain = domain.toLowerCase()
+    .replace(/^https?:\/\//, '')
+    .replace(/:\d+$/, '')
+    .replace(/\/$/, '');
+  
+  return domainCache.some(cachedDomain => 
+    cleanDomain === cachedDomain || 
+    cleanDomain.endsWith(`.${cachedDomain}`) || 
+    cachedDomain.endsWith(`.${cleanDomain}`)
+  );
+};
 
 // Enhanced security configuration for Socket.IO
 const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(httpServer, {
@@ -43,7 +83,7 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEve
   allowUpgrades: true,
 });
 
-// Enhanced security middleware
+// Set up CSP middleware with dynamic sources
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -60,9 +100,10 @@ app.use(helmet({
 }));
 
 app.use(cors({
-  origin: function(origin, callback) {
+  origin: async function(origin, callback) {
     if(!origin) return callback(null, true);
     
+    // Always allow these origins
     const allowedOrigins = [
       process.env.FRONTEND_URL || 'https://justlive.chat',
       'https://justlive.chat',
@@ -70,11 +111,37 @@ app.use(cors({
       'http://localhost:3000',
     ];
     
-    if(allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.justlive.chat')) {
-      callback(null, true);
-    } else {
-      console.log('CORS blocked origin:', origin);
-      callback(new Error('Not allowed by CORS'));
+    // Check if origin is in the allowed list
+    if(allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
+    }
+    
+    // Check if it's a justlive.chat subdomain
+    if(origin.endsWith('.justlive.chat')) {
+      return callback(null, true);
+    }
+    
+    try {
+      // First check the cache
+      if (isDomainInCache(origin)) {
+        return callback(null, true);
+      }
+      
+      // If not in cache, check the database and refresh cache if needed
+      await refreshDomainCache();
+      
+      // Check if the domain is registered in our database
+      const isRegistered = await isDomainRegistered(origin);
+      
+      if(isRegistered) {
+        return callback(null, true);
+      } else {
+        console.log('CORS blocked origin (not registered):', origin);
+        return callback(new Error('Not allowed by CORS'));
+      }
+    } catch (error) {
+      console.error('Error checking domain registration:', error);
+      return callback(new Error('CORS check failed'));
     }
   },
   credentials: true,

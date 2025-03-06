@@ -1,11 +1,23 @@
 import { Socket } from 'socket.io';
-import { findWebsiteById } from '../database/fetch';
+import { findWebsiteById, isDomainRegistered } from '../database/fetch';
 import { ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData } from './events';
 
 // Connection tracking for additional security
 const connectionTracker = new Map<string, { count: number; lastReset: number }>();
 const MAX_CONNECTIONS_PER_DOMAIN = 100;
 const RESET_INTERVAL = 3600000; // 1 hour
+
+// Import the domain cache check function from server.ts
+let isDomainInCache: (domain: string) => boolean;
+try {
+  // Try to import the function dynamically
+  const serverModule = require('../server');
+  isDomainInCache = serverModule.isDomainInCache;
+} catch (error) {
+  // Fallback if import fails
+  console.warn('Could not import domain cache function, using fallback');
+  isDomainInCache = () => false;
+}
 
 const checkConnectionLimit = (domain: string): boolean => {
   const now = Date.now();
@@ -63,17 +75,37 @@ export const socketAuth = async (
 
     // Skip domain validation for admin interface
     if (!isAdmin) {
-      // Validate origin against website domain
-      const websiteDomain = website.domain.toLowerCase();
+      // Extract domain from origin
       const requestDomain = origin.toLowerCase()
         .replace(/^https?:\/\//, '')  // Remove protocol
         .replace(/:\d+$/, '')         // Remove port
         .replace(/\/$/, '');          // Remove trailing slash
 
-      // Check if origin domain includes or is included in website domain
-      if (!requestDomain.includes(websiteDomain) && !websiteDomain.includes(requestDomain)) {
-        console.warn('Domain mismatch:', { websiteDomain, requestDomain });
-        return next(new Error('Socket authentication failed: Domain mismatch'));
+      // Always allow justlive.chat subdomains
+      if (!requestDomain.endsWith('.justlive.chat')) {
+        // Validate origin against website domain
+        const websiteDomain = website.domain.toLowerCase()
+          .replace(/^https?:\/\//, '')
+          .replace(/:\d+$/, '')
+          .replace(/\/$/, '');
+
+        // Check if origin domain matches website domain
+        if (requestDomain !== websiteDomain && 
+            !requestDomain.endsWith(`.${websiteDomain}`) && 
+            !websiteDomain.endsWith(`.${requestDomain}`)) {
+          
+          // Check if domain is in cache first
+          if (isDomainInCache && isDomainInCache(requestDomain)) {
+            // Domain is in cache, allow connection
+          } else {
+            // Additional check if the domain is registered in our system
+            const isRegistered = await isDomainRegistered(requestDomain);
+            if (!isRegistered) {
+              console.warn('Domain mismatch and not registered:', { websiteDomain, requestDomain });
+              return next(new Error('Socket authentication failed: Domain mismatch'));
+            }
+          }
+        }
       }
 
       // Check connection limit for the domain
