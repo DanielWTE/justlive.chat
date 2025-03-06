@@ -755,6 +755,29 @@ export default function ChatPage() {
   // Function to handle selecting a chat session
   const handleSelectChatSession = (roomId: string) => {
     setActiveRoomId(roomId);
+    
+    const session = chatSessions[roomId];
+    const socketWebsiteId = socket?.auth && (socket.auth as any).websiteId;
+    if (session && socket && session.websiteId !== socketWebsiteId) {
+      console.log(`Updating socket connection for website: ${session.websiteId}`);
+      
+      socket.disconnect();
+      const newSocket = io(`${process.env.NEXT_PUBLIC_API_URL}`, {
+        auth: {
+          isAdmin: true,
+          websiteId: session.websiteId,
+        },
+        withCredentials: true,
+        transports: ["websocket"],
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+        extraHeaders: {
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+      });
+      setSocket(newSocket);
+    }
   };
 
   // Function to go back to chat list on mobile
