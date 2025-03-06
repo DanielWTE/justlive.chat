@@ -34,7 +34,8 @@
    */
 
   // Configuration
-  const BACKEND_URL = '{{BACKEND_URL}}'; // Dynamically set in the api generation
+  // Dynamically set in the api generation
+  const BACKEND_URL = '{{BACKEND_URL}}';
 
   // Get website ID, debug mode, language and primary color from script tag
   const currentScript = document.currentScript;
