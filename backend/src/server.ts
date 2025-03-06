@@ -68,9 +68,50 @@ export const isDomainInCache = (domain: string): boolean => {
 // Enhanced security configuration for Socket.IO
 const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(httpServer, {
   cors: {
-    origin: process.env.APP_ENV === 'production' 
-      ? [process.env.FRONTEND_URL || 'https://justlive.chat', 'https://justlive.chat', /\.justlive\.chat$/]
-      : true,
+    origin: async (origin, callback) => {
+      if (!origin) return callback(null, true);
+      
+      // Always allow these origins
+      const allowedOrigins = [
+        process.env.FRONTEND_URL || 'https://justlive.chat',
+        'https://justlive.chat',
+        'https://api.justlive.chat',
+        'http://localhost:3000',
+      ];
+      
+      // Check if origin is in the allowed list
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      
+      // Check if it's a justlive.chat subdomain
+      if (origin.endsWith('.justlive.chat')) {
+        return callback(null, true);
+      }
+      
+      try {
+        // First check the cache
+        if (isDomainInCache(origin)) {
+          return callback(null, true);
+        }
+        
+        // If not in cache, check the database and refresh cache if needed
+        await refreshDomainCache();
+        
+        // Check if the domain is registered in our database
+        const isRegistered = await isDomainRegistered(origin);
+        
+        if (isRegistered) {
+          return callback(null, true);
+        } else {
+          console.log('Socket.IO CORS blocked origin (not registered):', origin);
+          return callback(new Error('Not allowed by CORS'));
+        }
+      } catch (error) {
+        console.error('Error checking domain registration for Socket.IO:', error);
+        return callback(new Error('CORS check failed'));
+      }
+    },
     credentials: true,
     methods: ["GET", "POST"],
   },
