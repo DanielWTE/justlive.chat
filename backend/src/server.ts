@@ -4,7 +4,6 @@ import { Server } from "socket.io";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
-import dotenv from "dotenv";
 import { handleAuthRegister } from "./api/auth/signup";
 import { handleAuthLogin } from "./api/auth/login";
 import { handleAuthSession } from "./api/auth/session";
@@ -19,8 +18,9 @@ import { socketAuth } from "./socket/auth";
 import { handleChatEvents } from "./socket/chat";
 import { ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData } from "./socket/events";
 import usersRouter from './api/users';
+import dotenv from "dotenv";
 
-dotenv.config({ path: '../.env' });
+dotenv.config();
 
 const app = express();
 const httpServer = createServer(app);
@@ -28,7 +28,7 @@ const httpServer = createServer(app);
 // Enhanced security configuration for Socket.IO
 const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(httpServer, {
   cors: {
-    origin: process.env.NODE_ENV === 'production' 
+    origin: process.env.APP_ENV === 'production' 
       ? [process.env.FRONTEND_URL || 'https://justlive.chat', /\.justlive\.chat$/]
       : true,
     credentials: true,
@@ -61,7 +61,7 @@ app.use(helmet({
 
 app.use(
   cors({
-    origin: process.env.NODE_ENV === 'production'
+    origin: process.env.APP_ENV === 'production'
       ? [process.env.FRONTEND_URL || 'https://justlive.chat', /\.justlive\.chat$/]
       : true,
     credentials: true,
@@ -89,7 +89,7 @@ app.use(cookieParser());
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error('Global error:', err);
   res.status(err.status || 500).json({
-    error: process.env.NODE_ENV === 'production' 
+    error: process.env.APP_ENV === 'production' 
       ? 'Internal server error' 
       : err.message
   });
@@ -162,7 +162,7 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.EXPRESS_PORT || 4000;
 
 httpServer.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

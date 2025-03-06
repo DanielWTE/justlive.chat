@@ -30,6 +30,7 @@ COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/public ./public
 
+# Create start script
 RUN echo '#!/bin/sh' > /app/start.sh && \
     echo 'npx prisma migrate deploy' >> /app/start.sh && \
     echo 'npm start' >> /app/start.sh && \

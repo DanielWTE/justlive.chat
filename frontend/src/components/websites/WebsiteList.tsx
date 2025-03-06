@@ -92,7 +92,7 @@ function EmbedCustomizer({ websiteId, onCopyEmbedCode }: EmbedCustomizerProps) {
 
   // Generate the embed code with the selected options
   const generateEmbedCode = () => {
-    let embedUrl = `${process.env.NEXT_PUBLIC_EMBED_URL}?id=${websiteId}`;
+    let embedUrl = `${process.env.NEXT_PUBLIC_API_URL}embed.js?id=${websiteId}`;
 
     if (colorPreset !== "blue") {
       embedUrl += `&colorPreset=${colorPreset}`;
@@ -737,7 +737,7 @@ export function WebsiteList({
                 <div className="relative flex-1">
                   <Input
                     readOnly
-                    value={`<script src="${process.env.NEXT_PUBLIC_EMBED_URL}?id=${website.id}"></script>`}
+                    value={`<script src="${process.env.NEXT_PUBLIC_API_URL}embed.js?id=${website.id}"></script>`}
                     className="pr-10 font-mono text-sm bg-muted"
                   />
                   <Button
@@ -747,7 +747,7 @@ export function WebsiteList({
                     onClick={() =>
                       handleCopyClick(
                         website.id,
-                        `<script src="${process.env.NEXT_PUBLIC_EMBED_URL}?id=${website.id}"></script>`
+                        `<script src="${process.env.NEXT_PUBLIC_API_URL}embed.js?id=${website.id}"></script>`
                       )
                     }
                   >

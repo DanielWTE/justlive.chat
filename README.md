@@ -113,7 +113,6 @@ This project includes a GitHub Actions workflow for continuous integration and d
      - `JWT_SECRET`: Your JWT secret key for authentication
    - Optional:
      - `FRONTEND_URL`: URL where the frontend is hosted (defaults to http://localhost:3000)
-     - `NEXT_PUBLIC_EMBED_URL`: URL for the embed script (defaults to http://localhost:4000/embed.js)
      - `NEXT_PUBLIC_API_URL`: URL for the API (defaults to http://localhost:4000/)
 
 2. **Self-hosted Runner** (for deployment):

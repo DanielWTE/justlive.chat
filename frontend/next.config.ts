@@ -1,12 +1,16 @@
 import type { NextConfig } from "next";
-import path from "path";
-import { config } from "dotenv";
-
-config({ path: path.resolve(__dirname, "../.env") });
 
 const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
+  },
+  env: {
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+    APP_ENV: process.env.APP_ENV,
+  },
+  publicRuntimeConfig: {
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+    APP_ENV: process.env.APP_ENV,
   },
 };
 
