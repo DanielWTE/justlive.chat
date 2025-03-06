@@ -29,7 +29,7 @@ const httpServer = createServer(app);
 const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(httpServer, {
   cors: {
     origin: process.env.APP_ENV === 'production' 
-      ? [process.env.FRONTEND_URL || 'https://justlive.chat', /\.justlive\.chat$/]
+      ? [process.env.FRONTEND_URL || 'https://justlive.chat', 'https://justlive.chat', /\.justlive\.chat$/]
       : true,
     credentials: true,
     methods: ["GET", "POST"],
@@ -59,17 +59,25 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
 }));
 
-app.use(
-  cors({
-    origin: process.env.APP_ENV === 'production'
-      ? [process.env.FRONTEND_URL || 'https://justlive.chat', /\.justlive\.chat$/]
-      : true,
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Website-ID'],
-    maxAge: 600, // 10 minutes
-  })
-);
+app.use(cors({
+  origin: function(origin, callback) {
+    if(!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'https://justlive.chat',
+    ];
+    
+    if(allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.justlive.chat')) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Website-ID'],
+}));
 
 // Additional security headers
 app.use((req, res, next) => {
