@@ -1,6 +1,6 @@
 # JustLive.Chat
 
-A live chat application with a frontend built with Next.js and a backend using Express and Prisma.
+A live chat application with a frontend built with Next.js 15 and a backend using Express, Socket.IO, and Prisma with PostgreSQL.
 
 ## Overview
 
@@ -14,12 +14,15 @@ JustLive.Chat is a modern live chat solution that enables website owners to comm
 - **Responsive Design**: Optimized for desktop and mobile
 - **Easy Integration**: Quick integration into existing websites with a JavaScript snippet
 - **Security**: JWT authentication and data protection
+- **Domain Verification**: Automatic verification of registered domains
+- **Rate Limiting**: Protection against abuse
 
 ## Technology Stack
 
-- **Frontend**: Next.js 15, React 19, TailwindCSS, Socket.IO Client
-- **Backend**: Express, Socket.IO, Prisma, PostgreSQL
+- **Frontend**: Next.js 15, React 19, TailwindCSS, Socket.IO Client, SWR
+- **Backend**: Express, Socket.IO, Prisma 6, PostgreSQL 16
 - **Authentication**: JWT (JSON Web Tokens)
+- **Security**: Helmet, CORS, Rate Limiting
 - **Deployment**: Docker, Docker Compose
 
 ## Development Setup
@@ -28,14 +31,14 @@ JustLive.Chat is a modern live chat solution that enables website owners to comm
 
 - Node.js (v18 or higher)
 - npm
-- PostgreSQL
+- PostgreSQL (or Docker for containerized development)
 
 ### Local Development
 
 1. Clone the repository
    ```
    git clone https://github.com/DanielWTE/justlive.chat.git
-   cd justlive.chat
+   cd /Users/dwagner/Desktop/justlive.chat
    ```
 
 2. Install dependencies:
@@ -66,7 +69,7 @@ JustLive.Chat is a modern live chat solution that enables website owners to comm
 1. Clone the repository
    ```
    git clone https://github.com/DanielWTE/justlive.chat.git
-   cd justlive.chat
+   cd /Users/dwagner/Desktop/justlive.chat
    ```
 
 2. Set up your environment variables by copying `.env.example` to `.env` and updating as needed
@@ -81,6 +84,7 @@ JustLive.Chat is a modern live chat solution that enables website owners to comm
    - `APP_ENV=production` (or "development" for testing)
    - `EXPRESS_PORT=4000` (backend port)
    - `FRONTEND_URL=http://your-domain.com:3000` (or your frontend URL)
+   - `BACKEND_URL=http://your-domain.com:4000` (or your backend URL)
 
 3. Build and start the containers:
    ```
@@ -100,7 +104,6 @@ The Docker setup is configured to handle environment variables correctly for Nex
 
 1. **Build-time variables**: Environment variables needed during the Next.js build process are passed as build arguments in docker-compose.yml
 2. **Runtime variables**: The same variables are also available at runtime in the container
-3. **Production environment file**: A .env.production file is automatically created during the build process
 
 If you need to update environment variables after deployment:
 
@@ -123,6 +126,7 @@ For production deployments, it's recommended to use a reverse proxy like Nginx o
 2. Update your environment variables to use the correct URLs:
    - `NEXT_PUBLIC_API_URL=https://api.your-domain.com` (or your backend URL)
    - `FRONTEND_URL=https://your-domain.com` (or your frontend URL)
+   - `BACKEND_URL=https://api.your-domain.com` (or your backend URL)
 
 3. Rebuild the containers with the updated environment variables
 
@@ -152,45 +156,12 @@ When deploying this application, please consider the following security aspects:
 
 3. **API Access**:
    - The application uses JWT for authentication
-   - Consider implementing rate limiting for production deployments
+   - Rate limiting is implemented to prevent abuse
+   - CORS is configured to only allow registered domains
 
 4. **HTTPS**:
    - Always use HTTPS in production
    - Configure your reverse proxy to handle SSL/TLS termination
-
-## CI/CD with GitHub Actions
-
-This project includes a GitHub Actions workflow for continuous integration and deployment.
-
-### Workflow Features
-
-- **Automated Testing**: Runs tests on every push and pull request
-- **Docker Image Building**: Builds and pushes Docker images to GitHub Container Registry
-- **Automated Deployment**: Deploys to production when changes are pushed to the main branch
-
-### Setup Requirements
-
-1. **GitHub Repository Secrets**:
-   - Required:
-     - `JWT_SECRET`: Your JWT secret key for authentication
-   - Optional:
-     - `FRONTEND_URL`: URL where the frontend is hosted (defaults to http://localhost:3000)
-     - `NEXT_PUBLIC_API_URL`: URL for the API (defaults to http://localhost:4000/)
-
-2. **Self-hosted Runner** (for deployment):
-   - Required for the deployment job
-   - Follow [GitHub's documentation](https://docs.github.com/en/actions/hosting-your-own-runners/adding-self-hosted-runners) to set up a self-hosted runner
-   - The runner should have Docker and Docker Compose installed
-
-### Workflow Steps
-
-1. **Test**: Builds and tests the application
-2. **Build and Push**: Creates Docker images and pushes them to GitHub Container Registry
-3. **Deploy**: Pulls the latest images and deploys them using Docker Compose
-
-### Manual Deployment
-
-You can also manually trigger the workflow from the GitHub Actions tab in your repository.
 
 ## Database Management
 
@@ -215,9 +186,19 @@ npx prisma studio
 ## Project Structure
 
 - `/frontend` - Next.js frontend application
+  - `/src/app` - Next.js app router pages
+  - `/src/components` - Reusable UI components
+  - `/src/hooks` - Custom React hooks
+  - `/src/lib` - Utility functions and libraries
+  - `/src/schemas` - Zod validation schemas
+  - `/src/types` - TypeScript type definitions
+
 - `/backend` - Express backend API and Socket.IO server
   - `/prisma` - Database schema and migrations
-  - `/src` - Backend source code
+  - `/src/api` - API route handlers
+  - `/src/middleware` - Express middleware
+  - `/src/socket` - Socket.IO event handlers
+  - `/src/database` - Database utility functions
 
 ## Data Model
 
@@ -231,13 +212,73 @@ The application uses the following main entities:
 
 ## Integration into Your Website
 
-To integrate JustLive.Chat into your website, simply add the following script to your HTML code:
+To integrate JustLive.Chat into your website, add the following script to your HTML code:
 
 ```html
-<script src="https://your-backend-url/embed.js" data-website-id="YOUR_WEBSITE_ID"></script>
+<script src="https://your-backend-url/embed.js?id=YOUR_WEBSITE_ID"></script>
 ```
 
 Replace `YOUR_WEBSITE_ID` with the ID you receive in the dashboard after registering your website.
+
+### Customization Options
+
+You can customize the chat widget by adding parameters to the script URL:
+
+```html
+<script src="https://your-backend-url/embed.js?id=YOUR_WEBSITE_ID&colorPreset=purple&size=large&language=de"></script>
+```
+
+#### Available Parameters:
+
+- **colorPreset**: Change the color theme of the chat widget
+  - Options: `blue` (default), `green`, `purple`, `red`, `orange`, `dark`, `indigo`
+- **size**: Adjust the size of the chat window
+  - Options: `small`, `medium` (default), `large`
+- **language**: Set the language of the chat interface
+  - Options: `auto` (default, uses browser language), `en`, `de`
+- **debug**: Enable debug mode for troubleshooting
+  - Options: `true`, `false` (default)
+
+#### Loading Optimization:
+
+You can add standard HTML script attributes to optimize loading:
+
+```html
+<script src="https://your-backend-url/embed.js?id=YOUR_WEBSITE_ID" defer async></script>
+```
+
+### JavaScript API
+
+JustLive.Chat also provides a JavaScript API for dynamic customization:
+
+```javascript
+// Change color theme
+JustLiveChat.setColorPreset('purple');
+
+// Change language
+JustLiveChat.setLanguage('de');
+
+// Change widget size
+JustLiveChat.setSize('large');
+
+// Toggle debug mode
+JustLiveChat.toggleDebug(true);
+
+// Get available color presets
+const presets = JustLiveChat.getColorPresets();
+```
+
+### Customization in Dashboard
+
+You can also generate and customize the embed code directly from your JustLive.Chat dashboard:
+
+1. Go to the Websites section in your dashboard
+2. Click the "Customize" button next to your website
+3. Select your preferred options (color, size, language, etc.)
+4. Copy the generated code and paste it into your website
+
+This approach provides a visual preview of your customization options before implementation.
+
 
 ## Troubleshooting
 
@@ -248,16 +289,24 @@ If you're experiencing issues with environment variables not being available in 
 1. Make sure your `.env` file contains the correct variables
 2. Rebuild the frontend container with `docker-compose build --no-cache frontend`
 3. Check that the variables are correctly passed as build arguments in docker-compose.yml
-4. Verify that the variables start with `NEXT_PUBLIC_` if they need to be accessible in the browser
 
 ### Database Connection Issues
 
-If the backend can't connect to the database:
+If you're having trouble connecting to the database:
 
-1. Check that the `DATABASE_URL` is correctly set in your `.env` file
-2. Ensure the PostgreSQL container is running with `docker-compose ps`
-3. Verify that the database has been initialized with `docker-compose logs postgres`
+1. Check that the PostgreSQL container is running: `docker-compose ps`
+2. Verify the `DATABASE_URL` in your `.env` file
+3. For local development outside Docker, update the `DATABASE_URL` to point to your local PostgreSQL instance
+
+### Socket.IO Connection Issues
+
+If real-time chat is not working:
+
+1. Check that the domain is properly registered in the dashboard
+2. Verify that CORS is properly configured for your domain
+3. Check browser console for any connection errors
+4. Ensure that the `NEXT_PUBLIC_API_URL` points to your backend server
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
+This project is licensed under the ISC License - see the LICENSE file for details.
