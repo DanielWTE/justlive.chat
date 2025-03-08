@@ -1,0 +1,54 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: justlivechat-postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: justlivechat
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    image: ghcr.io/${GITHUB_USERNAME}/justlive.chat/backend:latest
+    container_name: justlivechat-backend
+    restart: always
+    ports:
+      - "${EXPRESS_PORT:-4000}:${EXPRESS_PORT:-4000}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/justlivechat
+      - APP_ENV=${APP_ENV:-production}
+      - JWT_SECRET=${JWT_SECRET:-your_jwt_secret_here}
+      - EXPRESS_PORT=${EXPRESS_PORT:-4000}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
+      - BACKEND_URL=${BACKEND_URL:-http://localhost:4000}
+      
+  frontend:
+    image: ghcr.io/${GITHUB_USERNAME}/justlive.chat/frontend:latest
+    container_name: justlivechat-frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    env_file:
+      - .env
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+      - APP_ENV=${APP_ENV:-production}
+
+volumes:
+  postgres_data: 
